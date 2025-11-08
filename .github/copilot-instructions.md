@@ -2,7 +2,7 @@
 
 - Use Tanstack Router with React and TypeScript across the project.
 - Use bun for all package management commands (not npm or yarn).
-- Use MUI (Material-UI) for all UI components and styling.
+- Use React Bootstrap for all UI components and styling.
 - Prefer functional components and React hooks over class components.
 - Use Zustand for state management.
 - Ensure all code is written in TypeScript with strict typing.
@@ -25,9 +25,6 @@ src/
 
 ### Directory Structure Guidelines
 
-- Place all tab-related components (e.g., `EditableTabs`, `TopAppBar`) in the `tab` folder under `components`.
-- Place workspace-related hooks (e.g., `useWorkspaceTabs`) in the `workspace`
-  folder under `components`.
 - Keep localization files organized by language in the `locales` directory.
 - Store Zustand state management files in the `stores` directory.
 
@@ -35,7 +32,7 @@ src/
 
 - Always use TypeScript with strict typing.
 - Use functional components and React hooks.
-- Use MUI components for UI elements.
+- Use Bootstrap components for UI elements.
 - Use Tanstack Router for routing.
 - Use Zustand for state management.
 - Use react-hook-form for form handling.

@@ -13,8 +13,8 @@ export default function SignInForm() {
 
   const form = useForm({
     defaultValues: {
-      email: "",
-      password: "",
+      email: "admin@example.com",
+      password: "changethis",
     },
     onSubmit: async ({ value }) => {
       await authClient.signIn.email(
@@ -29,7 +29,7 @@ export default function SignInForm() {
             });
           },
           onError: (error) => {},
-        },
+        }
       );
     },
     validators: {
