@@ -5,11 +5,7 @@ import { Form, Button, Container } from "react-bootstrap";
 import z from "zod";
 import Loader from "./loader";
 
-export default function SignInForm({
-  onSwitchToSignUp,
-}: {
-  onSwitchToSignUp: () => void;
-}) {
+export default function SignInForm() {
   const navigate = useNavigate({
     from: "/",
   });
@@ -116,12 +112,6 @@ export default function SignInForm({
           )}
         </form.Subscribe>
       </Form>
-
-      <div className="mt-3 text-center">
-        <Button variant="link" onClick={onSwitchToSignUp}>
-          Need an account? Sign Up
-        </Button>
-      </div>
     </Container>
   );
 }

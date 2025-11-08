@@ -9,15 +9,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
-    volumes:
-      - project-base_postgres_data:/var/lib/postgresql
+      - "5678:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
-
-volumes:
-  project-base_postgres_data:
