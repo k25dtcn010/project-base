@@ -1,62 +1,55 @@
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Dropdown, Button, Spinner } from "react-bootstrap";
 import { authClient } from "@/lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
-import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
 import { Link } from "@tanstack/react-router";
 
 export default function UserMenu() {
-	const navigate = useNavigate();
-	const { data: session, isPending } = authClient.useSession();
+  const navigate = useNavigate();
+  const { data: session, isPending } = authClient.useSession();
 
-	if (isPending) {
-		return <Skeleton className="h-9 w-24" />;
-	}
+  if (isPending) {
+    return (
+      <Spinner animation="border" size="sm" role="status">
+        <span className="visually-hidden">Loading...</span>
+      </Spinner>
+    );
+  }
 
-	if (!session) {
-		return (
-			<Button variant="outline" asChild>
-				<Link to="/login">Sign In</Link>
-			</Button>
-		);
-	}
+  if (!session) {
+    return (
+      <Button variant="outline-primary" size="sm" as={Link} to="/login">
+        Sign In
+      </Button>
+    );
+  }
 
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="outline">{session.user.name}</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent className="bg-card">
-				<DropdownMenuLabel>My Account</DropdownMenuLabel>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem>{session.user.email}</DropdownMenuItem>
-				<DropdownMenuItem asChild>
-					<Button
-						variant="destructive"
-						className="w-full"
-						onClick={() => {
-							authClient.signOut({
-								fetchOptions: {
-									onSuccess: () => {
-										navigate({
-											to: "/",
-										});
-									},
-								},
-							});
-						}}
-					>
-						Sign Out
-					</Button>
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
+  return (
+    <Dropdown>
+      <Dropdown.Toggle variant="outline-secondary" size="sm" id="user-dropdown">
+        {session.user.name}
+      </Dropdown.Toggle>
+
+      <Dropdown.Menu align="end">
+        <Dropdown.Header>My Account</Dropdown.Header>
+        <Dropdown.Item disabled>{session.user.email}</Dropdown.Item>
+        <Dropdown.Divider />
+        <Dropdown.Item
+          onClick={() => {
+            authClient.signOut({
+              fetchOptions: {
+                onSuccess: () => {
+                  navigate({
+                    to: "/",
+                  });
+                },
+              },
+            });
+          }}
+          className="text-danger"
+        >
+          Sign Out
+        </Dropdown.Item>
+      </Dropdown.Menu>
+    </Dropdown>
+  );
 }
