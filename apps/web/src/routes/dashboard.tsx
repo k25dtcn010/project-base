@@ -25,7 +25,9 @@ function RouteComponent() {
           <div className="card">
             <div className="card-body">
               <h1 className="card-title">Dashboard</h1>
-              <p className="card-text">Welcome {session.data?.user.name}</p>
+              <p className="card-text">
+                Welcome {session.data?.user?.name || "Guest"}
+              </p>
             </div>
           </div>
         </div>

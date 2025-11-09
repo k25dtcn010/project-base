@@ -1,0 +1,66 @@
+name: project-base
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: project-base-postgres
+    environment:
+      POSTGRES_DB: project-base
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "${POSTGRES_PORT:-5678}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Hono Server (API)
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: project-base-server
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/project-base
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # React Web App (Nginx)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: project-base-web
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3000}
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

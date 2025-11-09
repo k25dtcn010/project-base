@@ -36,6 +36,7 @@
   "dependencies": {
     "@prisma/client": "catalog:",
     "dotenv": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@project-base/auth": "workspace:*"
   }
 }

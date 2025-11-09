@@ -80,6 +80,7 @@
       "name": "@project-base/db",
       "dependencies": {
         "@prisma/client": "catalog:",
+        "@project-base/auth": "workspace:*",
         "dotenv": "catalog:",
         "zod": "catalog:",
       },

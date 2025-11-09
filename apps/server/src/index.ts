@@ -10,14 +10,14 @@ app.use(logger());
 app.use(
 	"/*",
 	cors({
-		origin: process.env.CORS_ORIGIN || "",
-		allowMethods: ["GET", "POST", "OPTIONS"],
+		origin: process.env.CORS_ORIGIN || "http://localhost:3001",
+		allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 		allowHeaders: ["Content-Type", "Authorization"],
 		credentials: true,
 	}),
 );
 
-app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+app.all("/api/auth/**", (c) => auth.handler(c.req.raw));
 
 app.get("/", (c) => {
 	return c.text("OK");

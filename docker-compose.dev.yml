@@ -1,0 +1,91 @@
+name: project-base-dev
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: project-base-dev-postgres
+    environment:
+      POSTGRES_DB: project-base
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5678:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Hono Server (API)
+  server:
+    image: oven/bun:1.3.1-alpine
+    container_name: project-base-dev-server
+    working_dir: /app
+    command: sh /app/scripts/start-server.sh
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./apps/server/.env
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/project-base
+      - CORS_ORIGIN=http://localhost:3001
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-your-secret-key-change-this-in-production}
+      - BETTER_AUTH_URL=http://localhost:3000
+    volumes:
+      # Mount the entire project for monorepo support
+      - ./:/app
+      # Mount node_modules as a volume to avoid permission issues
+      - /app/node_modules
+      - /app/apps/server/node_modules
+      - /app/packages/auth/node_modules
+      - /app/packages/db/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # React Web App (Vite)
+  web:
+    image: oven/bun:1.3.1-alpine
+    container_name: project-base-dev-web
+    working_dir: /app
+    command: sh -c "bun install && bun run dev:web"
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./apps/web/.env
+    environment:
+      - NODE_ENV=development
+      - VITE_SERVER_URL=http://localhost:3000
+    volumes:
+      # Mount the entire project for monorepo support
+      - ./:/app
+      # Mount node_modules as a volume to avoid permission issues
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/packages/auth/node_modules
+      - /app/packages/db/node_modules
+    depends_on:
+      - server
+    networks:
+      - app-network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
