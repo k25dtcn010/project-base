@@ -10,12 +10,14 @@
     "start": "bun run dist/index.js"
   },
   "dependencies": {
-    "hono": "^4.8.2",
-    "better-auth": "catalog:",
-    "dotenv": "catalog:",
-    "zod": "catalog:",
+    "@hono/zod-validator": "^0.7.4",
     "@project-base/auth": "workspace:*",
-    "@project-base/db": "workspace:*"
+    "@project-base/db": "workspace:*",
+    "better-auth": "catalog:",
+    "dayjs": "^1.11.19",
+    "dotenv": "catalog:",
+    "hono": "^4.8.2",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "typescript": "catalog:",

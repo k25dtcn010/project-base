@@ -133,8 +133,129 @@ model Employee {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  attendances        Attendance[]
+  schedules          ShiftSchedule[]
+  requests           AttendanceRequest[]
+  confirmedAttendances Attendance[] @relation("ManagerConfirmedAttendances")
+  approvedShifts     AttendanceShift[] @relation("ManagerApprovedShifts")
+  approvedRequests   AttendanceRequest[] @relation("ManagerApprovedRequests")
+  createdSchedules   ShiftSchedule[] @relation("ManagerCreatedSchedules")
+
   @@index([departmentId])
   @@index([companyId])
   @@index([managerId])
   @@map("employee")
+}
+
+model Shift {
+  id          String   @id @default(cuid()) @map("_id")
+  name        String
+  startTime   String   @map("start_time") // Format: "HH:mm"
+  endTime     String   @map("end_time")   // Format: "HH:mm"
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  companyId   String?  @map("company_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  attendanceShifts AttendanceShift[]
+  schedules        ShiftSchedule[]
+  requests         AttendanceRequest[]
+
+  @@map("shift")
+}
+
+model Attendance {
+  id                  String    @id @default(cuid()) @map("_id")
+  employeeId          String    @map("employee_id")
+  checkInTime         DateTime  @map("check_in_time")
+  checkOutTime        DateTime? @map("check_out_time")
+  location            String?
+  note                String?
+  isMissingCheckOut   Boolean   @default(false) @map("is_missing_check_out")
+  managerConfirmedBy  String?   @map("manager_confirmed_by")
+  managerConfirmedAt  DateTime? @map("manager_confirmed_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  employee         Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  managerConfirmed Employee?         @relation("ManagerConfirmedAttendances", fields: [managerConfirmedBy], references: [id])
+  attendanceShifts AttendanceShift[]
+
+  @@index([employeeId])
+  @@index([checkInTime])
+  @@map("attendance")
+}
+
+model AttendanceShift {
+  id                String    @id @default(cuid()) @map("_id")
+  attendanceId      String    @map("attendance_id")
+  shiftId           String    @map("shift_id")
+  workDate          DateTime  @map("work_date") @db.Date
+  actualStartTime   DateTime  @map("actual_start_time")
+  actualEndTime     DateTime  @map("actual_end_time")
+  durationMinutes   Int       @map("duration_minutes")
+  lateMinutes       Int       @default(0) @map("late_minutes")
+  earlyLeaveMinutes Int       @default(0) @map("early_leave_minutes")
+  isApproved        Boolean   @default(false) @map("is_approved")
+  approvedBy        String?   @map("approved_by")
+  approvedAt        DateTime? @map("approved_at")
+  note              String?
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  shift      Shift      @relation(fields: [shiftId], references: [id])
+  manager    Employee?  @relation("ManagerApprovedShifts", fields: [approvedBy], references: [id])
+
+  @@index([attendanceId])
+  @@index([shiftId])
+  @@index([workDate])
+  @@map("attendance_shift")
+}
+
+model ShiftSchedule {
+  id                String   @id @default(cuid()) @map("_id")
+  employeeId        String   @map("employee_id")
+  shiftId           String   @map("shift_id")
+  scheduledFromDate DateTime @map("scheduled_from_date") @db.Date
+  scheduledToDate   DateTime @map("scheduled_to_date") @db.Date
+  note              String?
+  createdBy         String   @map("created_by")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift    Shift    @relation(fields: [shiftId], references: [id])
+  manager  Employee @relation("ManagerCreatedSchedules", fields: [createdBy], references: [id])
+
+  @@index([employeeId])
+  @@index([shiftId])
+  @@index([scheduledFromDate, scheduledToDate])
+  @@map("shift_schedule")
+}
+
+model AttendanceRequest {
+  id              String    @id @default(cuid()) @map("_id")
+  employeeId      String    @map("employee_id")
+  shiftId         String    @map("shift_id")
+  requestedDate   DateTime  @map("requested_date") @db.Date
+  fromTime        DateTime  @map("from_time")
+  toTime          DateTime  @map("to_time")
+  reason          String
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  approvedBy      String?   @map("approved_by")
+  approvedAt      DateTime? @map("approved_at")
+  rejectionReason String?   @map("rejection_reason")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  employee Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift    Shift     @relation(fields: [shiftId], references: [id])
+  manager  Employee? @relation("ManagerApprovedRequests", fields: [approvedBy], references: [id])
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([requestedDate])
+  @@map("attendance_request")
 }

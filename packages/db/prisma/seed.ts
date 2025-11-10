@@ -2,6 +2,7 @@ import { auth } from "@project-base/auth";
 
 import prisma from "../src/index";
 import { seedEmployeeData } from "./seeds/employee.seed";
+import { seedShifts } from "./seeds/shift.seed";
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -30,6 +31,9 @@ async function main() {
       throw error;
     }
   }
+
+  // Seed shifts
+  await seedShifts();
 
   // Seed employee data
   await seedEmployeeData();
