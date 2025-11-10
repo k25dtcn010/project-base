@@ -47,7 +47,7 @@
         "items": {
           "management": "QL Nhân Sự",
           "timekeeping": "Chấm Công",
-          "managementOld": "QL Nhân Sự (Old)"
+          "payroll": "Lương & Thưởng"
         }
       },
       "projects": {

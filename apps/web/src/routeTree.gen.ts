@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as WorkspaceRouteImport } from './routes/_workspace'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkspaceTimekeepingRouteImport } from './routes/_workspace/timekeeping'
 import { Route as WorkspaceDashboardRouteImport } from './routes/_workspace/dashboard'
 
 const LoginRoute = LoginRouteImport.update({
@@ -28,6 +29,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkspaceTimekeepingRoute = WorkspaceTimekeepingRouteImport.update({
+  id: '/timekeeping',
+  path: '/timekeeping',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
 const WorkspaceDashboardRoute = WorkspaceDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -38,11 +44,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof WorkspaceDashboardRoute
+  '/timekeeping': typeof WorkspaceTimekeepingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof WorkspaceDashboardRoute
+  '/timekeeping': typeof WorkspaceTimekeepingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,13 +58,20 @@ export interface FileRoutesById {
   '/_workspace': typeof WorkspaceRouteWithChildren
   '/login': typeof LoginRoute
   '/_workspace/dashboard': typeof WorkspaceDashboardRoute
+  '/_workspace/timekeeping': typeof WorkspaceTimekeepingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard'
+  fullPaths: '/' | '/login' | '/dashboard' | '/timekeeping'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard'
-  id: '__root__' | '/' | '/_workspace' | '/login' | '/_workspace/dashboard'
+  to: '/' | '/login' | '/dashboard' | '/timekeeping'
+  id:
+    | '__root__'
+    | '/'
+    | '/_workspace'
+    | '/login'
+    | '/_workspace/dashboard'
+    | '/_workspace/timekeeping'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -88,6 +103,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_workspace/timekeeping': {
+      id: '/_workspace/timekeeping'
+      path: '/timekeeping'
+      fullPath: '/timekeeping'
+      preLoaderRoute: typeof WorkspaceTimekeepingRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/_workspace/dashboard': {
       id: '/_workspace/dashboard'
       path: '/dashboard'
@@ -100,10 +122,12 @@ declare module '@tanstack/react-router' {
 
 interface WorkspaceRouteChildren {
   WorkspaceDashboardRoute: typeof WorkspaceDashboardRoute
+  WorkspaceTimekeepingRoute: typeof WorkspaceTimekeepingRoute
 }
 
 const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceDashboardRoute: WorkspaceDashboardRoute,
+  WorkspaceTimekeepingRoute: WorkspaceTimekeepingRoute,
 }
 
 const WorkspaceRouteWithChildren = WorkspaceRoute._addFileChildren(

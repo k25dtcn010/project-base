@@ -49,6 +49,7 @@
         "@tanstack/react-router": "^1.114.25",
         "antd": "^5.28.0",
         "better-auth": "catalog:",
+        "dayjs": "^1.11.19",
         "i18next": "^25.6.1",
         "i18next-browser-languagedetector": "^8.2.0",
         "lucide-react": "^0.473.0",

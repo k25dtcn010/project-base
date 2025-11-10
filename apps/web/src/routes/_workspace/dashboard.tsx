@@ -160,7 +160,7 @@ const moduleGroups: ModuleGroup[] = [
     titleKey: "dashboard.modules.hrm.title",
     icon: <PeopleIcon sx={{ fontSize: 48 }} />,
     color: "#17a2b8",
-    moduleCount: 2,
+    moduleCount: 3,
     items: [
       {
         labelKey: "dashboard.modules.hrm.items.management",
@@ -170,11 +170,18 @@ const moduleGroups: ModuleGroup[] = [
         bgColor: "#e6f0ff",
       },
       {
-        labelKey: "dashboard.modules.hrm.items.payroll",
+        labelKey: "dashboard.modules.hrm.items.timekeeping",
         icon: <ScheduleIcon />,
-        path: "/payroll",
+        path: "/timekeeping",
         color: "#17a2b8",
         bgColor: "#e0f7fa",
+      },
+      {
+        labelKey: "dashboard.modules.hrm.items.payroll",
+        icon: <AttachMoneyIcon />,
+        path: "/payroll",
+        color: "#27ae60",
+        bgColor: "#e6fff0",
       },
     ],
   },
