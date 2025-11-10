@@ -605,7 +605,7 @@ function DashboardComponent() {
             maxWidth="md"
             fullWidth
             slots={{
-              transition: Fade
+              transition: Fade,
             }}
             slotProps={{
               transition: { timeout: 400 },
@@ -616,8 +616,9 @@ function DashboardComponent() {
                   boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
                   mt: 4,
                 },
-              }
-            }}>
+              },
+            }}
+          >
             <DialogTitle
               sx={{
                 bgcolor: group.color,
@@ -630,11 +631,7 @@ function DashboardComponent() {
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 {group.icon}
-                <Typography
-                  variant="h6"
-                  component="span"
-                  sx={{ fontWeight: 600 }}
-                >
+                <Typography variant="h6" component="span" sx={{ fontWeight: 600 }}>
                   {t(group.titleKey)}
                 </Typography>
               </Box>
@@ -650,9 +647,7 @@ function DashboardComponent() {
                 <CloseIcon />
               </IconButton>
             </DialogTitle>
-            <DialogContent
-              sx={{ pt: "24px !important", px: 3, pb: 3, bgcolor: "#fafafa" }}
-            >
+            <DialogContent sx={{ pt: "24px !important", px: 3, pb: 3, bgcolor: "#fafafa" }}>
               <Box
                 sx={{
                   display: "flex",

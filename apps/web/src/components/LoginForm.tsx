@@ -1,9 +1,10 @@
 import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
 import { Box, Button, Paper, Typography } from "@mui/material";
-import { Alert, Checkbox, Form, Input } from "antd";
 import { useNavigate } from "@tanstack/react-router";
+import { Alert, Checkbox, Form, Input } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+
 import { authClient } from "@/lib/auth-client";
 
 interface LoginFormData {
@@ -11,7 +12,6 @@ interface LoginFormData {
   password: string;
   rememberMe: boolean;
 }
-
 
 export const LoginForm = () => {
   const { t } = useTranslation();
@@ -46,10 +46,7 @@ export const LoginForm = () => {
       }
     } catch (error: any) {
       // Handle network or other errors
-      if (
-        error?.message?.includes("fetch") ||
-        error?.message?.includes("network")
-      ) {
+      if (error?.message?.includes("fetch") || error?.message?.includes("network")) {
         setErrorMessage(t("login.errors.networkError"));
       } else {
         setErrorMessage(error?.message || t("login.errors.unknown"));
@@ -143,9 +140,7 @@ export const LoginForm = () => {
               autoComplete="current-password"
               disabled={isLoading}
               size="large"
-              iconRender={(visible) =>
-                visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
-              }
+              iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
             />
           </Form.Item>
 

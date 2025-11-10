@@ -1,4 +1,5 @@
 import type { redirect as redirectFn } from "@tanstack/react-router";
+
 import type { authClient } from "./auth-client";
 
 /**
@@ -26,7 +27,7 @@ export function isAuthenticated(session: Session): boolean {
 export function requireAuth(
   session: Session,
   redirect: typeof redirectFn,
-  location?: { href: string }
+  location?: { href: string },
 ) {
   if (!isAuthenticated(session)) {
     throw redirect({
@@ -46,7 +47,7 @@ export function requireAuth(
 export function redirectIfAuthenticated(
   session: Session,
   redirect: typeof redirectFn,
-  to: string = "/dashboard"
+  to: string = "/dashboard",
 ) {
   if (isAuthenticated(session)) {
     throw redirect({

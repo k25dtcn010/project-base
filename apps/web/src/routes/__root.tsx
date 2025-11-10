@@ -1,6 +1,7 @@
 import { Box, CircularProgress } from "@mui/material";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { Suspense } from "react";
+
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createRootRoute({

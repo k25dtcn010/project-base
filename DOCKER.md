@@ -28,6 +28,7 @@ bun run docker:dev:down
 ```
 
 **What happens:**
+
 - PostgreSQL runs on `localhost:5678`
 - Server API runs on `localhost:3000` with hot-reload
 - Web app runs on `localhost:3001` with hot-reload
@@ -63,6 +64,7 @@ bun run docker:clean
 - **web**: Vite dev server with HMR
 
 Volume mounts:
+
 - `./:/app` - Entire project mounted for instant code updates
 - Anonymous volumes for `node_modules` to prevent permission issues
 
@@ -77,12 +79,14 @@ Volume mounts:
 Create `.env` files in respective directories:
 
 ### apps/server/.env
+
 ```
 DATABASE_URL=postgresql://postgres:password@localhost:5678/project-base
 PORT=3000
 ```
 
 ### apps/web/.env
+
 ```
 VITE_API_URL=http://localhost:3000
 ```

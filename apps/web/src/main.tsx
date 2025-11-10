@@ -1,10 +1,12 @@
-import { RouterProvider, createRouter } from "@tanstack/react-router";
-import ReactDOM from "react-dom/client";
-import { routeTree } from "./routeTree.gen";
-import { StrictMode } from "react";
+import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
+import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { ConfigProvider } from "antd";
 import viVN from "antd/locale/vi_VN";
-import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
+import { StrictMode } from "react";
+import ReactDOM from "react-dom/client";
+
+import { routeTree } from "./routeTree.gen";
+
 import "./index.css";
 import "./i18n";
 
@@ -56,6 +58,6 @@ if (!rootElement.innerHTML) {
           <RouterProvider router={router} />
         </ThemeProvider>
       </ConfigProvider>
-    </StrictMode>
+    </StrictMode>,
   );
 }

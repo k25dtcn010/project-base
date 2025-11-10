@@ -1,4 +1,5 @@
 import { createFileRoute, Navigate, redirect } from "@tanstack/react-router";
+
 import { requireAuth } from "@/lib/auth-utils";
 
 export const Route = createFileRoute("/")({
