@@ -1,37 +1,47 @@
 import { authClient } from "@/lib/auth-client";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { requireAuth } from "@/lib/auth-utils";
+import { Button, Box, Typography, Card, CardContent, Container } from "@mui/material";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,
-  beforeLoad: async () => {
-    const session = await authClient.getSession();
-    if (!session.data) {
-      redirect({
-        to: "/login",
-        throw: true,
-      });
-    }
+  beforeLoad: async ({ context }) => {
+    const { session } = context;
+    requireAuth(session, redirect);
     return { session };
   },
 });
 
 function RouteComponent() {
   const { session } = Route.useRouteContext();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    navigate({ to: "/login" });
+  };
 
   return (
-    <div className="container py-4">
-      <div className="row">
-        <div className="col-12">
-          <div className="card">
-            <div className="card-body">
-              <h1 className="card-title">Dashboard</h1>
-              <p className="card-text">
-                Welcome {session.data?.user?.name || "Guest"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box>
+        <Card>
+          <CardContent>
+            <Typography variant="h4" component="h1" gutterBottom>
+              Dashboard
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Welcome {session.data?.user?.name || session.data?.user?.email || "Guest"}
+            </Typography>
+            <Button 
+              variant="outlined" 
+              color="error" 
+              onClick={handleSignOut}
+            >
+              Sign Out
+            </Button>
+          </CardContent>
+        </Card>
+      </Box>
+    </Container>
   );
 }

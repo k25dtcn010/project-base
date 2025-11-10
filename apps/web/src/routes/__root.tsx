@@ -1,54 +1,35 @@
-import Header from "@/components/header";
-import { ThemeProvider } from "@/components/theme-provider";
-import {
-  HeadContent,
-  Outlet,
-  createRootRouteWithContext,
-} from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import "../index.scss";
+import { Box, CircularProgress } from "@mui/material";
+import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { Suspense } from "react";
+import { authClient } from "@/lib/auth-client";
 
-export interface RouterAppContext {}
-
-export const Route = createRootRouteWithContext<RouterAppContext>()({
+export const Route = createRootRoute({
   component: RootComponent,
-  head: () => ({
-    meta: [
-      {
-        title: "project-base",
-      },
-      {
-        name: "description",
-        content: "project-base is a web application",
-      },
-    ],
-    links: [
-      {
-        rel: "icon",
-        href: "/favicon.ico",
-      },
-    ],
-  }),
+  beforeLoad: async () => {
+    // Load session data for all routes
+    const session = await authClient.getSession();
+    return { session };
+  },
 });
 
 function RootComponent() {
   return (
-    <>
-      <HeadContent />
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="dark"
-        disableTransitionOnChange
-        storageKey="vite-ui-theme"
-      >
-        <div className="d-flex flex-column h-100">
-          <Header />
-          <main className="flex-grow-1">
-            <Outlet />
-          </main>
-        </div>
-      </ThemeProvider>
-      <TanStackRouterDevtools position="bottom-left" />
-    </>
+    <Suspense
+      fallback={
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+            bgcolor: "background.default",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      }
+    >
+      <Outlet />
+    </Suspense>
   );
 }

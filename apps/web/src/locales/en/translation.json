@@ -1,0 +1,160 @@
+{
+  "login": {
+    "title": "Sign In",
+    "username": "Username",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "submit": "Sign In",
+    "forgotPassword": "Forgot password?",
+    "loggingIn": "Signing in...",
+    "success": "Login successful!",
+    "errors": {
+      "required": "This field is required",
+      "invalidCredentials": "Invalid username or password",
+      "networkError": "Network error. Please try again.",
+      "unknown": "An error occurred. Please try again."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "dashboard": {
+    "header": "ERP Ánh Sáng Tiến Dư",
+    "welcome": "Welcome!",
+    "modulesTitle": "Function Modules",
+    "stats": {
+      "inventory": "Inventory (Old)",
+      "pendingApproval": "Pending Approval (Old)",
+      "monthlyRevenue": "Monthly Revenue",
+      "employees": "Employees"
+    },
+    "modules": {
+      "stock": {
+        "title": "WAREHOUSE",
+        "items": {
+          "addMaterial": "Add Material to Stock",
+          "exportRequest": "Export Request",
+          "approveRequest": "Approve Request",
+          "inventoryReport": "Inventory Report",
+          "approvalReport": "Approval Report",
+          "history": "Stock History"
+        }
+      },
+      "hrm": {
+        "title": "HUMAN RESOURCES",
+        "items": {
+          "management": "HR Management",
+          "timekeeping": "Timekeeping",
+          "managementOld": "HR Management (Old)"
+        }
+      },
+      "projects": {
+        "title": "WORK",
+        "items": {
+          "management": "Work Management (PM)",
+          "assigned": "Assigned Tasks",
+          "discussion": "Work Discussion"
+        }
+      },
+      "manufactory": {
+        "title": "MANUFACTURING",
+        "items": {
+          "printing": "Printing Management",
+          "fabrication": "Fabrication Management",
+          "quotation": "Quotation Management"
+        }
+      },
+      "accounting": {
+        "title": "FINANCE",
+        "items": {
+          "expenseRequest": "Expense Request",
+          "approveExpense": "Approve Expense",
+          "expenseHistory": "Expense History",
+          "accountManagement": "Account Management",
+          "collections": "Collections Management"
+        }
+      },
+      "crm": {
+        "title": "CRM",
+        "items": {
+          "management": "Customer Management (New)",
+          "orders": "Order List",
+          "orderDetails": "Order Details"
+        }
+      },
+      "reports": {
+        "title": "REPORTS",
+        "items": {
+          "daily": "Daily Work Report",
+          "financial": "Financial Report",
+          "production": "Production Report",
+          "sales": "Sales Report",
+          "general": "General Report"
+        }
+      },
+      "settings": {
+        "title": "SYSTEM",
+        "items": {
+          "security": "Security & Permissions",
+          "database": "Database Configuration"
+        }
+      }
+    }
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "hr": "HR (Human Resources)",
+    "attendance": "Attendance",
+    "accounting": "Accounting",
+    "procurement": "Procurement",
+    "crm": "CRM",
+    "stock": "Stock",
+    "projects": "Projects",
+    "manufactory": "Manufactory",
+    "settings": "Settings",
+    "hr_employees": "Employees",
+    "hr_contracts": "Contracts",
+    "hr_decisions": "Decisions",
+    "hr_reports": "Reports",
+    "attendance_timekeeping": "Timekeeping",
+    "attendance_shifts": "Shifts",
+    "attendance_leave": "Leave",
+    "attendance_reports": "Reports",
+    "subheaders": {
+      "hrm": "Human Resource Management",
+      "accounting": "Accounting",
+      "procurement": "Procurement",
+      "crm": "Customer Relations",
+      "stock": "Inventory",
+      "projects": "Projects",
+      "manufactory": "Manufacturing"
+    }
+  },
+  "tabs": {
+    "contextMenu": {
+      "pinTab": "Pin Tab",
+      "unpinTab": "Unpin Tab",
+      "duplicateTab": "Duplicate Tab",
+      "closeTab": "Close Tab",
+      "closeOtherTabs": "Close All Other Tabs"
+    },
+    "entities": {
+      "employees": "Employee",
+      "contracts": "Contract",
+      "decisions": "Decision",
+      "departments": "Department",
+      "positions": "Position",
+      "projects": "Project",
+      "customers": "Customer",
+      "suppliers": "Supplier",
+      "products": "Product",
+      "orders": "Order"
+    },
+    "actions": {
+      "add": "Add",
+      "edit": "Edit"
+    }
+  }
+}

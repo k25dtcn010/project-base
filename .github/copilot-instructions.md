@@ -2,7 +2,7 @@
 
 - Use Tanstack Router with React and TypeScript across the project.
 - Use bun for all package management commands (not npm or yarn).
-- Use React Bootstrap for all UI components and styling.
+- Use MUI (Material-UI) for all UI components and styling.
 - Prefer functional components and React hooks over class components.
 - Use Zustand for state management.
 - Ensure all code is written in TypeScript with strict typing.
@@ -32,9 +32,8 @@ src/
 
 - Always use TypeScript with strict typing.
 - Use functional components and React hooks.
-- Use Bootstrap components for UI elements.
+- Use MUI (Material-UI) components for UI elements (except table, form i will using antd).
 - Use Tanstack Router for routing.
 - Use Zustand for state management.
-- Use react-hook-form for form handling.
 - Ensure code is clean, well-documented, and follows best practices
 - Ensure using @/ as the base path for all imports from the `src` directory.

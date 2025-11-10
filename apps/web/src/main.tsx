@@ -1,14 +1,28 @@
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
-import Loader from "./components/loader";
 import { routeTree } from "./routeTree.gen";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { StrictMode } from "react";
+import { ConfigProvider } from "antd";
+import viVN from "antd/locale/vi_VN";
+import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
+import "./index.css";
 
 const router = createRouter({
   routeTree,
-  defaultPreload: "intent",
-  defaultPendingComponent: () => <Loader />,
   context: {},
+  defaultPreload: "intent",
+  scrollRestoration: true,
+  defaultStructuralSharing: true,
+  defaultPreloadStaleTime: 0,
+});
+
+const theme = createTheme({
+  palette: {
+    mode: "light",
+    primary: {
+      main: "#1976d2",
+    },
+  },
 });
 
 declare module "@tanstack/react-router" {
@@ -25,5 +39,22 @@ if (!rootElement) {
 
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
-  root.render(<RouterProvider router={router} />);
+  root.render(
+    <StrictMode>
+      <ConfigProvider
+        locale={viVN}
+        theme={{
+          token: {
+            colorPrimary: "#1976d2",
+            borderRadius: 4,
+          },
+        }}
+      >
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </ConfigProvider>
+    </StrictMode>
+  );
 }

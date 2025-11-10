@@ -1,0 +1,160 @@
+{
+  "login": {
+    "title": "Đăng Nhập",
+    "username": "Tên đăng nhập",
+    "password": "Mật khẩu",
+    "rememberMe": "Ghi nhớ đăng nhập",
+    "submit": "Đăng Nhập",
+    "forgotPassword": "Quên mật khẩu?",
+    "loggingIn": "Đang đăng nhập...",
+    "success": "Đăng nhập thành công!",
+    "errors": {
+      "required": "Trường này là bắt buộc",
+      "invalidCredentials": "Tên đăng nhập hoặc mật khẩu không đúng",
+      "networkError": "Lỗi mạng. Vui lòng thử lại.",
+      "unknown": "Đã xảy ra lỗi. Vui lòng thử lại."
+    }
+  },
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công"
+  },
+  "dashboard": {
+    "header": "ERP Ánh Sáng Tiến Dư",
+    "welcome": "Xin chào!",
+    "modulesTitle": "Khu vực chức năng",
+    "stats": {
+      "inventory": "Tồn Kho (Old)",
+      "pendingApproval": "Yêu Cầu Chờ Duyệt (Old)",
+      "monthlyRevenue": "Doanh Thu Tháng",
+      "employees": "Số Nhân Sự"
+    },
+    "modules": {
+      "stock": {
+        "title": "KHO",
+        "items": {
+          "addMaterial": "Nhập Kho Vật tư",
+          "exportRequest": "Yêu Cầu Xuất Kho",
+          "approveRequest": "Duyệt Yêu Cầu",
+          "inventoryReport": "Báo Cáo Tồn Kho",
+          "approvalReport": "Báo Cáo Duyệt",
+          "history": "Lịch Sử Kho"
+        }
+      },
+      "hrm": {
+        "title": "NHÂN SỰ",
+        "items": {
+          "management": "QL Nhân Sự",
+          "timekeeping": "Chấm Công",
+          "managementOld": "QL Nhân Sự (Old)"
+        }
+      },
+      "projects": {
+        "title": "CÔNG VIỆC",
+        "items": {
+          "management": "Quản lý Công việc (PM)",
+          "assigned": "Việc được giao",
+          "discussion": "Trao đổi công việc"
+        }
+      },
+      "manufactory": {
+        "title": "SẢN XUẤT",
+        "items": {
+          "printing": "Quản lý In Ấn",
+          "fabrication": "Quản lý Gia Công",
+          "quotation": "Quản lý Báo giá"
+        }
+      },
+      "accounting": {
+        "title": "TÀI CHÍNH",
+        "items": {
+          "expenseRequest": "Đề Nghị Chi Tiền",
+          "approveExpense": "Duyệt Chi",
+          "expenseHistory": "Lịch Sử Duyệt Chi",
+          "accountManagement": "QL Tài Khoản",
+          "collections": "QL Thu Tiền"
+        }
+      },
+      "crm": {
+        "title": "CRM",
+        "items": {
+          "management": "QL Khách Hàng (New)",
+          "orders": "Danh sách đơn hàng",
+          "orderDetails": "Chi tiết đơn hàng"
+        }
+      },
+      "reports": {
+        "title": "BÁO CÁO",
+        "items": {
+          "daily": "Báo cáo công việc hàng ngày",
+          "financial": "Báo cáo Tài chính",
+          "production": "Báo cáo Sản xuất",
+          "sales": "Báo cáo Kinh doanh",
+          "general": "Báo cáo Tổng hợp"
+        }
+      },
+      "settings": {
+        "title": "HỆ THỐNG",
+        "items": {
+          "security": "Phân quyền & Bảo mật",
+          "database": "Cấu hình Database"
+        }
+      }
+    }
+  },
+  "sidebar": {
+    "dashboard": "Bảng điều khiển",
+    "hr": "Nhân sự",
+    "attendance": "Chấm công",
+    "accounting": "Kế toán",
+    "procurement": "Mua hàng",
+    "crm": "Quản lý khách hàng",
+    "stock": "Kho",
+    "projects": "Dự án",
+    "manufactory": "Sản xuất",
+    "settings": "Cài đặt",
+    "hr_employees": "Nhân viên",
+    "hr_contracts": "Hợp đồng",
+    "hr_decisions": "Quyết định",
+    "hr_reports": "Báo cáo",
+    "attendance_timekeeping": "Chấm công",
+    "attendance_shifts": "Phân ca",
+    "attendance_leave": "Ngày nghỉ",
+    "attendance_reports": "Báo cáo",
+    "subheaders": {
+      "hrm": "Quản lý nhân sự",
+      "accounting": "Kế toán",
+      "procurement": "Mua hàng",
+      "crm": "Quan hệ khách hàng",
+      "stock": "Kho hàng",
+      "projects": "Dự án",
+      "manufactory": "Sản xuất"
+    }
+  },
+  "tabs": {
+    "contextMenu": {
+      "pinTab": "Ghim Tab",
+      "unpinTab": "Bỏ Ghim Tab",
+      "duplicateTab": "Nhân Bản Tab",
+      "closeTab": "Đóng Tab",
+      "closeOtherTabs": "Đóng Tất Cả Tab Khác"
+    },
+    "entities": {
+      "employees": "Nhân viên",
+      "contracts": "Hợp đồng",
+      "decisions": "Quyết định",
+      "departments": "Phòng ban",
+      "positions": "Chức vụ",
+      "projects": "Dự án",
+      "customers": "Khách hàng",
+      "suppliers": "Nhà cung cấp",
+      "products": "Sản phẩm",
+      "orders": "Đơn hàng"
+    },
+    "actions": {
+      "add": "Thêm",
+      "edit": "Sửa"
+    }
+  }
+}
