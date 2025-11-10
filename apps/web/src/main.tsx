@@ -6,6 +6,7 @@ import { ConfigProvider } from "antd";
 import viVN from "antd/locale/vi_VN";
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import "./index.css";
+import "./i18n";
 
 const router = createRouter({
   routeTree,

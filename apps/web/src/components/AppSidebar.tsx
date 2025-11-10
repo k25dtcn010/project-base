@@ -1,9 +1,7 @@
 import {
   AccessTime as AccessTimeIcon,
-  AccountBalance as AccountBalanceIcon,
   Add as AddIcon,
   Assessment as AssessmentIcon,
-  Assignment as AssignmentIcon,
   Business as BusinessIcon,
   CalendarMonth as CalendarMonthIcon,
   Dashboard as DashboardIcon,
@@ -11,13 +9,10 @@ import {
   EventBusy as EventBusyIcon,
   ExpandLess,
   ExpandMore,
-  Factory as FactoryIcon,
   Fingerprint as FingerprintIcon,
   Gavel as GavelIcon,
-  Inventory as InventoryIcon,
   People as PeopleIcon,
   Settings as SettingsIcon,
-  ShoppingCart as ShoppingCartIcon,
 } from "@mui/icons-material";
 import {
   Avatar,
@@ -202,9 +197,7 @@ export function AppSidebar({ open }: AppSidebarProps) {
     // If item has children, toggle expand/collapse
     if (item.children && item.children.length > 0) {
       setExpandedItems((prev) =>
-        prev.includes(item.key)
-          ? prev.filter((k) => k !== item.key)
-          : [...prev, item.key]
+        prev.includes(item.key) ? prev.filter((k) => k !== item.key) : [...prev, item.key],
       );
     } else {
       // Open tab or switch to existing tab
@@ -286,18 +279,13 @@ export function AppSidebar({ open }: AppSidebarProps) {
               )}
 
               {/* Divider for collapsed mode when there's a subheader */}
-              {group.subheaderKey && !open && groupIndex > 0 && (
-                <Divider sx={{ mb: 1 }} />
-              )}
+              {group.subheaderKey && !open && groupIndex > 0 && <Divider sx={{ mb: 1 }} />}
 
               {/* Menu items */}
               {group.items.map((item) => (
                 <React.Fragment key={item.key}>
                   <ListItem disablePadding sx={{ display: "block" }}>
-                    <Tooltip
-                      title={!open ? t(item.labelKey) : ""}
-                      placement="right"
-                    >
+                    <Tooltip title={!open ? t(item.labelKey) : ""} placement="right">
                       <ListItemButton
                         selected={isActive(item.path)}
                         onClick={() => handleMenuClick(item)}
@@ -326,9 +314,7 @@ export function AppSidebar({ open }: AppSidebarProps) {
                             minWidth: 0,
                             mr: open ? 3 : "auto",
                             justifyContent: "center",
-                            color: isActive(item.path)
-                              ? "primary.main"
-                              : "inherit",
+                            color: isActive(item.path) ? "primary.main" : "inherit",
                           }}
                         >
                           {item.icon}
@@ -351,11 +337,7 @@ export function AppSidebar({ open }: AppSidebarProps) {
                               alignItems: "center",
                             }}
                           >
-                            {isExpanded(item.key) ? (
-                              <ExpandLess />
-                            ) : (
-                              <ExpandMore />
-                            )}
+                            {isExpanded(item.key) ? <ExpandLess /> : <ExpandMore />}
                           </Box>
                         )}
                       </ListItemButton>
@@ -364,27 +346,14 @@ export function AppSidebar({ open }: AppSidebarProps) {
 
                   {/* Render children if exists and expanded */}
                   {item.children && item.children.length > 0 && (
-                    <Collapse
-                      in={isExpanded(item.key)}
-                      timeout="auto"
-                      unmountOnExit
-                    >
+                    <Collapse in={isExpanded(item.key)} timeout="auto" unmountOnExit>
                       <List component="div" disablePadding>
                         {item.children.map((child) => (
-                          <ListItem
-                            key={child.key}
-                            disablePadding
-                            sx={{ display: "block" }}
-                          >
-                            <Tooltip
-                              title={!open ? t(child.labelKey) : ""}
-                              placement="right"
-                            >
+                          <ListItem key={child.key} disablePadding sx={{ display: "block" }}>
+                            <Tooltip title={!open ? t(child.labelKey) : ""} placement="right">
                               <ListItemButton
                                 selected={isActive(child.path)}
-                                onClick={() =>
-                                  openTab(child.path, t(child.labelKey))
-                                }
+                                onClick={() => openTab(child.path, t(child.labelKey))}
                                 sx={{
                                   minHeight: 48,
                                   height: 48,
@@ -401,8 +370,7 @@ export function AppSidebar({ open }: AppSidebarProps) {
                                     backgroundColor: "rgba(25, 118, 210, 0.12)",
                                     borderColor: "primary.main",
                                     "&:hover": {
-                                      backgroundColor:
-                                        "rgba(25, 118, 210, 0.16)",
+                                      backgroundColor: "rgba(25, 118, 210, 0.16)",
                                     },
                                   },
                                 }}
@@ -412,9 +380,7 @@ export function AppSidebar({ open }: AppSidebarProps) {
                                     minWidth: 0,
                                     mr: open ? 3 : "auto",
                                     justifyContent: "center",
-                                    color: isActive(child.path)
-                                      ? "primary.main"
-                                      : "inherit",
+                                    color: isActive(child.path) ? "primary.main" : "inherit",
                                   }}
                                 >
                                   {child.icon}
@@ -424,9 +390,7 @@ export function AppSidebar({ open }: AppSidebarProps) {
                                   sx={{ opacity: open ? 1 : 0 }}
                                   slotProps={{
                                     primary: {
-                                      fontWeight: isActive(child.path)
-                                        ? 600
-                                        : 400,
+                                      fontWeight: isActive(child.path) ? 600 : 400,
                                       fontSize: "0.875rem",
                                     },
                                   }}
