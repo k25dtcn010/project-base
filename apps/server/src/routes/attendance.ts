@@ -155,6 +155,117 @@ attendance.post(
   }
 );
 
+// Get all employees attendance for admin view
+attendance.get(
+  "/all",
+  zValidator(
+    "query",
+    z.object({
+      from: z.string().optional(),
+      to: z.string().optional(),
+      companyId: z.string().optional(),
+      departmentId: z.string().optional(),
+    })
+  ),
+  async (c) => {
+    try {
+      const { from, to, companyId, departmentId } = c.req.valid("query");
+
+      // Build date filter
+      const dateFilter: any = {};
+      if (from) {
+        dateFilter.gte = new Date(from);
+      }
+      if (to) {
+        dateFilter.lte = new Date(to);
+      }
+
+      // Build employee filter
+      const employeeFilter: any = {};
+      if (companyId) {
+        employeeFilter.companyId = companyId;
+      }
+      if (departmentId) {
+        employeeFilter.departmentId = departmentId;
+      }
+
+      // Get all employees matching filters
+      const employees = await db.employee.findMany({
+        where: employeeFilter,
+        select: {
+          id: true,
+          employeeCode: true,
+          fullName: true,
+          department: { select: { name: true } },
+          company: { select: { name: true } },
+        },
+        orderBy: [{ department: { name: "asc" } }, { fullName: "asc" }],
+      });
+
+      // Get attendance shifts for all employees in date range
+      const where: any = {};
+      if (Object.keys(dateFilter).length > 0) {
+        where.workDate = dateFilter;
+      }
+
+      const attendanceShifts = await db.attendanceShift.findMany({
+        where,
+        include: {
+          shift: true,
+          attendance: {
+            include: {
+              employee: {
+                select: {
+                  id: true,
+                  employeeCode: true,
+                  fullName: true,
+                  department: { select: { name: true } },
+                },
+              },
+            },
+          },
+        },
+        orderBy: [{ workDate: "asc" }],
+      });
+
+      // Group by employee
+      const employeeDataMap = new Map<
+        string,
+        {
+          employee: typeof employees[0];
+          shifts: typeof attendanceShifts;
+        }
+      >();
+
+      employees.forEach((emp) => {
+        employeeDataMap.set(emp.id, {
+          employee: emp,
+          shifts: [],
+        });
+      });
+
+      attendanceShifts.forEach((shift) => {
+        const empId = shift.attendance.employeeId;
+        const empData = employeeDataMap.get(empId);
+        if (empData) {
+          empData.shifts.push(shift);
+        }
+      });
+
+      // Convert to array
+      const result = Array.from(employeeDataMap.values()).map((data) => ({
+        employee: data.employee,
+        attendanceShifts: data.shifts,
+      }));
+
+      return c.json({ data: result });
+    } catch (error) {
+      console.error("Get all attendance error:", error);
+      return c.json({ error: "Failed to fetch all attendance data" }, 500);
+    }
+  }
+);
+
 // Get attendance history for an employee
 attendance.get(
   "/employee/:employeeId",

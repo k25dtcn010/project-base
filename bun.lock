@@ -96,6 +96,7 @@
         "@prisma/client": "catalog:",
         "@project-base/auth": "workspace:*",
         "csv-parse": "^6.1.0",
+        "dayjs": "^1.11.19",
         "dotenv": "catalog:",
         "zod": "catalog:",
       },

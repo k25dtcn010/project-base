@@ -3,6 +3,7 @@ import { auth } from "@project-base/auth";
 import prisma from "../src/index";
 import { seedEmployeeData } from "./seeds/employee.seed";
 import { seedShifts } from "./seeds/shift.seed";
+import { seedAttendances } from "./seeds/attendance.seed";
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -37,6 +38,9 @@ async function main() {
 
   // Seed employee data
   await seedEmployeeData();
+
+  // Seed attendance data with various edge cases
+  await seedAttendances();
 }
 
 main()
