@@ -1,6 +1,7 @@
 import { auth } from "@project-base/auth";
 
 import prisma from "../src/index";
+import { seedEmployeeData } from "./seeds/employee.seed";
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -12,24 +13,26 @@ async function main() {
 
   if (existingUser) {
     console.log("✅ Admin user already exists");
-    return;
+  } else {
+    // Create admin user using better-auth API
+    try {
+      const data = await auth.api.signUpEmail({
+        body: {
+          name: "Admin",
+          email: "admin@example.com",
+          password: "changethis",
+        },
+      });
+
+      console.log("✅ Admin user created successfully:", data);
+    } catch (error) {
+      console.error("❌ Error creating admin user:", error);
+      throw error;
+    }
   }
 
-  // Create admin user using better-auth API
-  try {
-    const data = await auth.api.signUpEmail({
-      body: {
-        name: "Admin",
-        email: "admin@example.com",
-        password: "changethis",
-      },
-    });
-
-    console.log("✅ Admin user created successfully:", data);
-  } catch (error) {
-    console.error("❌ Error creating admin user:", error);
-    throw error;
-  }
+  // Seed employee data
+  await seedEmployeeData();
 }
 
 main()

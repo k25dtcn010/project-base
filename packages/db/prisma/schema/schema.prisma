@@ -1,12 +1,140 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated"
-  moduleFormat = "esm"
-  runtime = "bun"
+  provider      = "prisma-client"
+  output        = "../generated"
+  moduleFormat  = "esm"
+  runtime       = "bun"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @map("_id")
+  name          String
+  email         String
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  sessions      Session[]
+  accounts      Account[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @map("_id")
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @map("_id")
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id @map("_id")
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+model Company {
+  id        String   @id @default(cuid()) @map("_id")
+  name      String
+  csvFile   String   @map("csv_file")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  employees Employee[]
+
+  @@map("company")
+}
+
+model Department {
+  id          String  @id @default(cuid()) @map("_id")
+  name        String
+  code        String  @unique
+  level       Int
+  description String?
+  colorCode   String  @map("color_code")
+  parentId    String? @map("parent_id")
+
+  parent   Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children Department[] @relation("DepartmentHierarchy")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  employees Employee[]
+
+  @@map("department")
+}
+
+model Employee {
+  id               String    @id @default(cuid()) @map("_id")
+  employeeCode     String    @unique @map("employee_code")
+  fullName         String    @map("full_name")
+  gender           String
+  position         String
+  role             String
+  birthday         DateTime?
+  idCardNumber     String?   @map("id_card_number")
+  idCardIssueDate  DateTime? @map("id_card_issue_date")
+  idCardIssuer     String?   @map("id_card_issuer")
+  permanentAddress String?   @map("permanent_address")
+  phone            String?
+  education        String?
+  startDate        DateTime? @map("start_date")
+  relativesNote    String?   @map("relatives_note")
+
+  departmentId String  @map("department_id")
+  companyId    String  @map("company_id")
+  managerId    String? @map("manager_id")
+
+  department   Department @relation(fields: [departmentId], references: [id])
+  company      Company    @relation(fields: [companyId], references: [id])
+  manager      Employee?  @relation("EmployeeHierarchy", fields: [managerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subordinates Employee[] @relation("EmployeeHierarchy")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([departmentId])
+  @@index([companyId])
+  @@index([managerId])
+  @@map("employee")
 }

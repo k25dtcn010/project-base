@@ -35,8 +35,9 @@
   },
   "dependencies": {
     "@prisma/client": "catalog:",
+    "@project-base/auth": "workspace:*",
+    "csv-parse": "^6.1.0",
     "dotenv": "catalog:",
-    "zod": "catalog:",
-    "@project-base/auth": "workspace:*"
+    "zod": "catalog:"
   }
 }
