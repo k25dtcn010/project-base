@@ -1,4 +1,4 @@
-import { ClockCircleOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { ClockCircleOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ScheduleOutlined } from "@ant-design/icons";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Button,
@@ -11,16 +11,21 @@ import {
   Popconfirm,
   Select,
   Space,
+  Switch,
   Table,
+  Tabs,
   Tag,
   TimePicker,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import apiClient from "@/lib/api-client";
+
+dayjs.extend(isSameOrBefore);
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -57,6 +62,17 @@ interface Employee {
   };
 }
 
+interface ShiftType {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const DAYS_OF_WEEK = [
   { value: 0, label: "CN" },
   { value: 1, label: "T2" },
@@ -68,6 +84,45 @@ const DAYS_OF_WEEK = [
 ];
 
 function ShiftsPage() {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState("assignments");
+
+  return (
+    <div style={{ padding: 24 }}>
+      <Card>
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={[
+            {
+              key: "assignments",
+              label: (
+                <span>
+                  <ClockCircleOutlined />
+                  Phân ca
+                </span>
+              ),
+              children: <ShiftAssignmentsTab />,
+            },
+            {
+              key: "types",
+              label: (
+                <span>
+                  <ScheduleOutlined />
+                  Cấu hình ca
+                </span>
+              ),
+              children: <ShiftTypesTab />,
+            },
+          ]}
+        />
+      </Card>
+    </div>
+  );
+}
+
+// Tab 1: Shift Assignments (Phân ca)
+function ShiftAssignmentsTab() {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -208,7 +263,7 @@ function ShiftsPage() {
           breakDuration: 0,
           color: "#1890ff",
         });
-        shiftId = shiftResponse.data?.id || shiftResponse.shift?.id;
+        shiftId = shiftResponse.data?.id || (shiftResponse as any).shift?.id;
       }
 
       // Create schedule for each employee
@@ -356,33 +411,25 @@ function ShiftsPage() {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <Card
-        title={
-          <Space>
-            <ClockCircleOutlined />
-            <span>Quản lý phân ca</span>
-          </Space>
-        }
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Thêm phân ca
-          </Button>
-        }
-      >
-        <Table
-          columns={columns}
-          dataSource={assignments}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Tổng ${total} phân ca`,
-          }}
-          scroll={{ x: 1200 }}
-        />
-      </Card>
+    <>
+      <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-end" }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          Thêm phân ca
+        </Button>
+      </div>
+
+      <Table
+        columns={columns}
+        dataSource={assignments}
+        rowKey="id"
+        loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Tổng ${total} phân ca`,
+        }}
+        scroll={{ x: 1200 }}
+      />
 
       <Modal
         title={editingId ? "Chỉnh sửa phân ca" : "Thêm phân ca mới"}
@@ -479,6 +526,286 @@ function ShiftsPage() {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </>
+  );
+}
+
+// Tab 2: Shift Types Configuration (Cấu hình ca)
+function ShiftTypesTab() {
+  const { t } = useTranslation();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [shiftTypes, setShiftTypes] = useState<ShiftType[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchShiftTypes();
+  }, []);
+
+  const fetchShiftTypes = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getAllShifts();
+      setShiftTypes(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch shift types:", error);
+      message.error("Không thể tải danh sách loại ca");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = () => {
+    setEditingId(null);
+    form.resetFields();
+    form.setFieldsValue({
+      isActive: true,
+    });
+    setModalOpen(true);
+  };
+
+  const handleEdit = (record: ShiftType) => {
+    setEditingId(record.id);
+    form.setFieldsValue({
+      name: record.name,
+      startTime: dayjs(record.startTime, "HH:mm"),
+      endTime: dayjs(record.endTime, "HH:mm"),
+      description: record.description,
+      isActive: record.isActive,
+    });
+    setModalOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await apiClient.deleteShift(id);
+      message.success("Xóa loại ca thành công");
+      fetchShiftTypes();
+    } catch (error: any) {
+      message.error(error.message || "Không thể xóa loại ca");
+    }
+  };
+
+  const handleToggle = async (id: string) => {
+    try {
+      await apiClient.toggleShift(id);
+      message.success("Cập nhật trạng thái thành công");
+      fetchShiftTypes();
+    } catch (error: any) {
+      message.error(error.message || "Không thể cập nhật trạng thái");
+    }
+  };
+
+  const handleSubmit = async (values: any) => {
+    try {
+      setLoading(true);
+
+      const data = {
+        name: values.name,
+        startTime: values.startTime.format("HH:mm"),
+        endTime: values.endTime.format("HH:mm"),
+        description: values.description,
+        isActive: values.isActive ?? true,
+      };
+
+      if (editingId) {
+        await apiClient.updateShift(editingId, data);
+        message.success("Cập nhật loại ca thành công");
+      } else {
+        await apiClient.createShift({
+          ...data,
+          code: `SHIFT_${data.startTime.replace(":", "")}_${data.endTime.replace(":", "")}`,
+          breakDuration: 0,
+          color: "#1890ff",
+        });
+        message.success("Thêm loại ca thành công");
+      }
+
+      setModalOpen(false);
+      fetchShiftTypes();
+    } catch (error: any) {
+      message.error(error.message || "Có lỗi xảy ra");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getShiftDuration = (startTime: string, endTime: string): string => {
+    const start = dayjs(startTime, "HH:mm");
+    let end = dayjs(endTime, "HH:mm");
+
+    // Handle cross-midnight shifts
+    if (end.isSameOrBefore(start)) {
+      end = end.add(1, "day");
+    }
+
+    const hours = end.diff(start, "hour", true);
+    return `${hours}h`;
+  };
+
+  const isCrossMidnight = (startTime: string, endTime: string): boolean => {
+    return endTime <= startTime;
+  };
+
+  const shiftTypeColumns: ColumnsType<ShiftType> = [
+    {
+      title: "Tên ca",
+      dataIndex: "name",
+      key: "name",
+      width: 150,
+      render: (text, record) => (
+        <Space>
+          <Tag color={record.isActive ? "blue" : "default"}>{text}</Tag>
+          {isCrossMidnight(record.startTime, record.endTime) && <Tag color="orange">Qua đêm</Tag>}
+        </Space>
+      ),
+    },
+    {
+      title: "Thời gian",
+      key: "time",
+      width: 150,
+      render: (_, record) => (
+        <Space>
+          <ClockCircleOutlined />
+          <span>
+            {record.startTime} - {record.endTime}
+          </span>
+        </Space>
+      ),
+    },
+    {
+      title: "Thời lượng",
+      key: "duration",
+      width: 100,
+      render: (_, record) => getShiftDuration(record.startTime, record.endTime),
+    },
+    {
+      title: "Mô tả",
+      dataIndex: "description",
+      key: "description",
+      ellipsis: true,
+    },
+    {
+      title: "Trạng thái",
+      key: "status",
+      width: 120,
+      render: (_, record) => (
+        <Switch
+          checked={record.isActive}
+          onChange={() => handleToggle(record.id)}
+          checkedChildren="Kích hoạt"
+          unCheckedChildren="Vô hiệu"
+        />
+      ),
+    },
+    {
+      title: "Thao tác",
+      key: "actions",
+      width: 150,
+      fixed: "right",
+      render: (_, record) => (
+        <Space>
+          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
+            Sửa
+          </Button>
+          <Popconfirm
+            title="Xóa loại ca"
+            description="Bạn có chắc chắn muốn xóa loại ca này?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Xóa"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
+          >
+            <Button type="link" danger icon={<DeleteOutlined />}>
+              Xóa
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-end" }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          Thêm loại ca
+        </Button>
+      </div>
+
+      <Table
+        columns={shiftTypeColumns}
+        dataSource={shiftTypes}
+        rowKey="id"
+        loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Tổng ${total} loại ca`,
+        }}
+        scroll={{ x: 1000 }}
+      />
+
+      <Modal
+        title={editingId ? "Chỉnh sửa loại ca" : "Thêm loại ca mới"}
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        onOk={() => form.submit()}
+        confirmLoading={loading}
+        width={600}
+        okText={editingId ? "Cập nhật" : "Thêm mới"}
+        cancelText="Hủy"
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          initialValues={{
+            isActive: true,
+          }}
+        >
+          <Form.Item
+            label="Tên ca"
+            name="name"
+            rules={[{ required: true, message: "Vui lòng nhập tên ca" }]}
+          >
+            <Input placeholder="Ví dụ: Hành chính, Tối, Đêm, Sáng" />
+          </Form.Item>
+
+          <Space.Compact style={{ width: "100%", marginBottom: 24 }}>
+            <Form.Item
+              label="Giờ bắt đầu"
+              name="startTime"
+              style={{ flex: 1, marginBottom: 0 }}
+              rules={[{ required: true, message: "Vui lòng chọn giờ bắt đầu" }]}
+            >
+              <TimePicker format="HH:mm" placeholder="Giờ bắt đầu" style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item
+              label="Giờ kết thúc"
+              name="endTime"
+              style={{ flex: 1, marginBottom: 0 }}
+              rules={[{ required: true, message: "Vui lòng chọn giờ kết thúc" }]}
+            >
+              <TimePicker format="HH:mm" placeholder="Giờ kết thúc" style={{ width: "100%" }} />
+            </Form.Item>
+          </Space.Compact>
+
+          <Form.Item label="Mô tả" name="description">
+            <Input.TextArea
+              rows={3}
+              placeholder="Mô tả chi tiết về ca làm việc này"
+              showCount
+              maxLength={200}
+            />
+          </Form.Item>
+
+          <Form.Item label="Trạng thái" name="isActive" valuePropName="checked">
+            <Switch checkedChildren="Kích hoạt" unCheckedChildren="Vô hiệu" />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
   );
 }

@@ -2,13 +2,14 @@ import {
   CalendarOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
+  InfoCircleOutlined,
   LeftOutlined,
   RightOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
 import { Typography } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
-import { Badge, Button, Card, DatePicker, Radio, Space, Table, Tag, Tooltip } from "antd";
+import { Alert, Badge, Button, Card, DatePicker, Radio, Space, Table, Tag, Tooltip } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
@@ -40,6 +41,8 @@ export interface ShiftRecord {
   shiftEndTime: string;
   checkIn?: string;
   checkOut?: string;
+  actualCheckIn?: string; // Giờ chấm công thực tế
+  actualCheckOut?: string; // Giờ chấm công thực tế
   hours: number;
   missingHours: number;
   color: string;
@@ -92,6 +95,8 @@ export interface AttendanceShift {
   earlyLeaveMinutes: number;
   isApproved: boolean;
   note: string | null;
+  shiftType?: string; // "primary" | "boundary" | "overtime"
+  overlapPercentage?: number; // Percentage of shift duration covered
   shift: {
     id: string;
     name: string;
@@ -99,7 +104,10 @@ export interface AttendanceShift {
     endTime: string;
   };
   attendance: {
+    id: string;
     employeeId: string;
+    checkInTime: string;
+    checkOutTime: string | null;
     employee: {
       id: string;
       employeeCode: string;
@@ -124,6 +132,31 @@ export interface EmployeeAttendanceData {
 }
 
 // ---------- Utils ----------
+const getShiftOrder = (shiftName: string): number => {
+  const name = shiftName.toLowerCase();
+  if (name.includes("sáng") || name.includes("morning")) {
+    return 1;
+  }
+  if (name.includes("hành chính") || name.includes("admin")) {
+    return 2;
+  }
+  if (name.includes("tối") || name.includes("evening") || name.includes("afternoon")) {
+    return 3;
+  }
+  if (name.includes("đêm") || name.includes("night")) {
+    return 4;
+  }
+  return 5; // Unknown shifts go last
+};
+
+const sortShiftsByOrder = (shifts: ShiftRecord[]): ShiftRecord[] => {
+  return [...shifts].sort((a, b) => {
+    const orderA = getShiftOrder(a.shiftName);
+    const orderB = getShiftOrder(b.shiftName);
+    return orderA - orderB;
+  });
+};
+
 const getShiftColor = (shiftName: string): string => {
   const name = shiftName.toLowerCase();
   if (name.includes("hành chính") || name.includes("admin") || name.includes("morning")) {
@@ -153,7 +186,9 @@ const calculateStandardHours = (startTime: string, endTime: string): number => {
   return (endMinutes - startMinutes) / 60;
 };
 
-const convertShiftToRecord = (attendanceShift: AttendanceShift): ShiftRecord => {
+const convertShiftToRecord = (
+  attendanceShift: AttendanceShift,
+): ShiftRecord & { shiftType?: string; overlapPercentage?: number } => {
   const standardHours = calculateStandardHours(
     attendanceShift.shift.startTime,
     attendanceShift.shift.endTime,
@@ -168,11 +203,32 @@ const convertShiftToRecord = (attendanceShift: AttendanceShift): ShiftRecord => 
     shiftEndTime: attendanceShift.shift.endTime,
     checkIn: dayjs(attendanceShift.actualStartTime).format("HH:mm"),
     checkOut: dayjs(attendanceShift.actualEndTime).format("HH:mm"),
+    actualCheckIn: dayjs(attendanceShift.attendance.checkInTime).format("HH:mm"),
+    actualCheckOut: attendanceShift.attendance.checkOutTime 
+      ? dayjs(attendanceShift.attendance.checkOutTime).format("HH:mm")
+      : undefined,
     hours: Math.round(actualHours * 10) / 10,
     missingHours: Math.round(missingHours * 10) / 10,
     color: getShiftColor(attendanceShift.shift.name),
     isApproved: attendanceShift.isApproved,
+    shiftType: (attendanceShift as any).shiftType || "primary",
+    overlapPercentage: (attendanceShift as any).overlapPercentage || 100,
   };
+};
+
+const filterShiftsByType = (shifts: ShiftRecord[], showBoundary: boolean): ShiftRecord[] => {
+  let filteredShifts = shifts;
+  
+  if (!showBoundary) {
+    // Only show primary shifts (hide boundary shifts with < 25% overlap)
+    filteredShifts = shifts.filter((shift) => {
+      const shiftType = (shift as any).shiftType || "primary";
+      return shiftType === "primary" || shiftType === "overtime";
+    });
+  }
+  
+  // Sort shifts by order: sáng - hành chính - tối - đêm
+  return sortShiftsByOrder(filteredShifts);
 };
 
 // ---------- Helpers ----------
@@ -230,51 +286,68 @@ const DayCell = (day: DayRecord) => {
     <Space direction="vertical" size={4} style={{ width: "100%" }}>
       {day.shifts.map((shift, idx) => (
         <div key={idx} style={{ width: "100%" }}>
-          <Tooltip
-            title={
-              shift.isApproved
-                ? "Đã được phê duyệt"
-                : "Chờ quản lý phê duyệt" +
-                  (shift.missingHours > 0 ? ` • Thiếu ${shift.missingHours}h` : "")
-            }
+          <div
+            key={idx}
+            style={{
+              marginBottom: 4,
+              opacity: (shift as any).shiftType === "boundary" ? 0.6 : 1,
+            }}
           >
-            <Tag
-              icon={
-                shift.missingHours > 0 ? (
-                  <WarningOutlined />
-                ) : shift.isApproved ? (
-                  <CheckCircleOutlined />
-                ) : (
-                  <ClockCircleOutlined />
-                )
+            <Tooltip
+              title={
+                (shift as any).shiftType === "boundary"
+                  ? `Ca biên (${(shift as any).overlapPercentage?.toFixed(1)}% overlap) - ${
+                      shift.isApproved ? "Đã duyệt" : "Chờ duyệt"
+                    }`
+                  : shift.isApproved
+                    ? "Đã được phê duyệt"
+                    : "Chờ quản lý phê duyệt" +
+                      (shift.missingHours > 0 ? ` • Thiếu ${shift.missingHours}h` : "")
               }
-              color={
-                shift.missingHours > 0 ? "error" : shift.isApproved ? shift.color : "processing"
-              }
-              style={{ margin: 0, width: "100%" }}
             >
-              {shift.shiftName}
-            </Tag>
-          </Tooltip>
-          {shift.checkIn && (
-            <div
-              style={{
-                fontSize: 11,
-                color:
-                  shift.missingHours > 0 ? "#ff4d4f" : shift.isApproved ? "#52c41a" : "#faad14",
-                marginTop: 2,
-                fontWeight: shift.missingHours > 0 ? 500 : 400,
-              }}
-            >
-              {shift.checkIn} - {shift.checkOut}
-            </div>
-          )}
-          <Typography variant="caption" style={{ fontSize: 12, color: "#666", marginTop: 2 }}>
-            {shift.hours}h
-            {shift.missingHours > 0 && (
-              <span style={{ color: "#ff4d4f", marginLeft: 4 }}>(-{shift.missingHours}h)</span>
+              <Tag
+                icon={
+                  shift.missingHours > 0 ? (
+                    <WarningOutlined />
+                  ) : shift.isApproved ? (
+                    <CheckCircleOutlined />
+                  ) : (
+                    <ClockCircleOutlined />
+                  )
+                }
+                color={
+                  shift.missingHours > 0 ? "error" : shift.isApproved ? shift.color : "processing"
+                }
+                style={{
+                  margin: 0,
+                  width: "100%",
+                  borderStyle: (shift as any).shiftType === "boundary" ? "dashed" : "solid",
+                }}
+              >
+                {(shift as any).shiftType === "boundary" && "🔹 "}
+                {shift.shiftName}
+              </Tag>
+            </Tooltip>
+            {shift.actualCheckIn && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color:
+                    shift.missingHours > 0 ? "#ff4d4f" : shift.isApproved ? "#52c41a" : "#faad14",
+                  marginTop: 2,
+                  fontWeight: shift.missingHours > 0 ? 500 : 400,
+                }}
+              >
+                Vào: {shift.actualCheckIn} - Ra: {shift.actualCheckOut || "..."}
+              </div>
             )}
-          </Typography>
+            <Typography variant="caption" style={{ fontSize: 12, color: "#666", marginTop: 2 }}>
+              {shift.hours}h
+              {shift.missingHours > 0 && (
+                <span style={{ color: "#ff4d4f", marginLeft: 4 }}>(-{shift.missingHours}h)</span>
+              )}
+            </Typography>
+          </div>
         </div>
       ))}
     </Space>
@@ -315,9 +388,9 @@ const MonthDayCell = (d: MonthDay) => {
               {shift.shiftName} ({shift.shiftStartTime} - {shift.shiftEndTime})
             </strong>
           </div>
-          {shift.checkIn && (
+          {shift.actualCheckIn && (
             <div>
-              Vào: {shift.checkIn} - Ra: {shift.checkOut}
+              Vào: {shift.actualCheckIn} - Ra: {shift.actualCheckOut || "..."}
             </div>
           )}
           <div>
@@ -517,6 +590,7 @@ function TimekeepingPage() {
   const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs());
   const [loading, setLoading] = useState(false);
   const [attendanceData, setAttendanceData] = useState<EmployeeAttendanceData[]>([]);
+  const [showBoundaryShifts, setShowBoundaryShifts] = useState(false);
   const tableHeight = 560;
 
   useEffect(() => {
@@ -563,6 +637,11 @@ function TimekeepingPage() {
         shiftsByDate.get(dateKey)!.push(convertShiftToRecord(shift));
       });
 
+      // Filter shifts based on showBoundaryShifts setting
+      shiftsByDate.forEach((dayShifts, dateKey) => {
+        shiftsByDate.set(dateKey, filterShiftsByType(dayShifts, showBoundaryShifts));
+      });
+
       // Map to week days
       const [mon, tue, wed, thu, fri, sat, sun] = weekDates.map((date) => {
         const dateKey = date.format("YYYY-MM-DD");
@@ -590,7 +669,7 @@ function TimekeepingPage() {
         sun,
       };
     });
-  }, [attendanceData, currentDate]);
+  }, [attendanceData, currentDate, showBoundaryShifts]);
 
   // Process data into monthly format
   const monthlyData = useMemo(() => {
@@ -608,6 +687,11 @@ function TimekeepingPage() {
           shiftsByDate.set(dateKey, []);
         }
         shiftsByDate.get(dateKey)!.push(convertShiftToRecord(shift));
+      });
+
+      // Filter shifts based on showBoundaryShifts setting
+      shiftsByDate.forEach((dayShifts, dateKey) => {
+        shiftsByDate.set(dateKey, filterShiftsByType(dayShifts, showBoundaryShifts));
       });
 
       // Map to month days
@@ -634,7 +718,7 @@ function TimekeepingPage() {
         days,
       };
     });
-  }, [attendanceData, currentDate]);
+  }, [attendanceData, currentDate, showBoundaryShifts]);
 
   const weekLabel = useMemo(() => {
     const startOfWeek = currentDate.startOf("isoWeek");
@@ -756,6 +840,31 @@ function TimekeepingPage() {
             <Radio.Button value="weekly">📅 Theo tuần</Radio.Button>
             <Radio.Button value="monthly">📆 Theo tháng</Radio.Button>
           </Radio.Group>
+          <Tooltip
+            title={
+              showBoundaryShifts
+                ? "Click để ẩn các ca biên (overlap < 25%)"
+                : "Click để hiển thị tất cả ca, bao gồm ca biên"
+            }
+          >
+            <Button
+              type={showBoundaryShifts ? "primary" : "default"}
+              icon={showBoundaryShifts ? <CheckCircleOutlined /> : <ClockCircleOutlined />}
+              onClick={() => setShowBoundaryShifts(!showBoundaryShifts)}
+            >
+              {showBoundaryShifts ? "Chi tiết đầy đủ" : "Chỉ ca chính"}
+              {!showBoundaryShifts && (
+                <Badge
+                  count="Đã lọc"
+                  style={{
+                    backgroundColor: "#52c41a",
+                    marginLeft: 8,
+                    fontSize: 10,
+                  }}
+                />
+              )}
+            </Button>
+          </Tooltip>
           <Button icon={<LeftOutlined />} onClick={handlePrev}>
             {viewMode === "monthly" ? "Tháng trước" : "Tuần trước"}
           </Button>
@@ -775,6 +884,37 @@ function TimekeepingPage() {
           </Button>
         </Space>
       </div>
+
+      {showBoundaryShifts && (
+        <Alert
+          message="Chế độ hiển thị chi tiết đầy đủ"
+          description={
+            <div>
+              <p style={{ marginBottom: 8 }}>
+                Đang hiển thị <strong>tất cả các ca</strong>, bao gồm:
+              </p>
+              <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+                <li>
+                  <strong>Ca chính:</strong> Ca được phân công chính thức
+                </li>
+                <li>
+                  <strong>🔹 Ca biên (boundary):</strong> Ca phát sinh tự động khi nhân viên làm
+                  việc xuyên khung giờ (overlap &lt; 25%)
+                </li>
+              </ul>
+              <p style={{ marginTop: 8, marginBottom: 0 }}>
+                💡 <em>Gợi ý:</em> Click nút "Chi tiết đầy đủ" để chỉ hiển thị ca chính, giúp giao
+                diện gọn gàng hơn.
+              </p>
+            </div>
+          }
+          type="info"
+          icon={<InfoCircleOutlined />}
+          showIcon
+          closable
+          style={{ marginBottom: 16 }}
+        />
+      )}
 
       <Card bordered={false} style={{ background: "#fff" }}>
         {viewMode === "weekly" ? (

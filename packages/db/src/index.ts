@@ -7,3 +7,6 @@ export default prisma;
 
 // Export work schedule constants and utilities
 export * from "./constants/work-schedule";
+
+// Export shift analyzer service
+export { analyzeAttendance } from "./services/shift-analyzer";

@@ -13,6 +13,8 @@ dayjs.extend(isSameOrAfter);
 
 const TIMEZONE = "Asia/Ho_Chi_Minh"; // UTC+7
 
+type ShiftType = "primary" | "boundary" | "overtime";
+
 interface ShiftSegment {
   shiftId: string;
   shiftName: string;
@@ -25,6 +27,8 @@ interface ShiftSegment {
   lateMinutes: number;
   earlyLeaveMinutes: number;
   note: string;
+  shiftType: ShiftType;
+  overlapPercentage: number; // Percentage of shift duration covered
 }
 
 /**
@@ -107,11 +111,14 @@ export async function analyzeAttendance(attendanceId: string): Promise<void> {
         earlyLeaveMinutes: segment.earlyLeaveMinutes,
         isApproved: false,
         note: segment.note,
+        shiftType: segment.shiftType,
+        overlapPercentage: segment.overlapPercentage,
       },
     });
 
+    const typeLabel = segment.shiftType === "boundary" ? "🔹 Boundary" : "✅ Primary";
     console.log(
-      `   ✅ Created shift segment: ${segment.shiftName} on ${dayjs(segment.workDate).format("YYYY-MM-DD")}`,
+      `   ${typeLabel} shift: ${segment.shiftName} (${segment.overlapPercentage}%) on ${dayjs(segment.workDate).format("YYYY-MM-DD")}`,
     );
   }
 
@@ -121,6 +128,39 @@ export async function analyzeAttendance(attendanceId: string): Promise<void> {
 /**
  * Generate shift segments from check-in/check-out timeline
  */
+/**
+ * Calculate shift duration in minutes
+ */
+function getShiftDurationMinutes(startTime: string, endTime: string): number {
+  const start = dayjs(startTime, "HH:mm");
+  let end = dayjs(endTime, "HH:mm");
+
+  if (endTime <= startTime) {
+    end = end.add(1, "day");
+  }
+
+  return end.diff(start, "minute");
+}
+
+/**
+ * Classify shift type based on overlap characteristics
+ */
+function classifyShiftType(
+  _duration: number,
+  _shiftDuration: number,
+  overlapPercentage: number,
+): ShiftType {
+  const BOUNDARY_THRESHOLD = 25; // 25% threshold for boundary shifts
+
+  // If overlap is less than 25% of shift duration, it's a boundary shift
+  if (overlapPercentage < BOUNDARY_THRESHOLD) {
+    return "boundary";
+  }
+
+  // If overlap is significant (>= 25%), it's the primary shift
+  return "primary";
+}
+
 function generateShiftSegments(
   checkIn: dayjs.Dayjs,
   checkOut: dayjs.Dayjs,
@@ -152,20 +192,29 @@ function generateShiftSegments(
       if (overlapStart.isBefore(overlapEnd)) {
         // There is an overlap
         const duration = minutesDiff(overlapStart, overlapEnd);
+        const shiftDuration = getShiftDurationMinutes(shift.startTime, shift.endTime);
+        const overlapPercentage = (duration / shiftDuration) * 100;
 
-        // Calculate late/early minutes
-        const lateMinutes = overlapStart.isAfter(shiftStart)
-          ? minutesDiff(shiftStart, overlapStart)
-          : 0;
+        // Calculate late/early minutes based on actual check-in/check-out within the shift period
+        // Only count as late if checkIn is AFTER shift start AND within shift period
+        let lateMinutes = 0;
+        if (checkIn.isAfter(shiftStart) && checkIn.isBefore(shiftEnd)) {
+          lateMinutes = minutesDiff(shiftStart, checkIn);
+        }
 
-        const earlyLeaveMinutes = overlapEnd.isBefore(shiftEnd)
-          ? minutesDiff(overlapEnd, shiftEnd)
-          : 0;
+        // Only count as early leave if checkOut is BEFORE shift end AND within shift period
+        let earlyLeaveMinutes = 0;
+        if (checkOut.isBefore(shiftEnd) && checkOut.isAfter(shiftStart)) {
+          earlyLeaveMinutes = minutesDiff(checkOut, shiftEnd);
+        }
+
+        // Classify shift type
+        const shiftType = classifyShiftType(duration, shiftDuration, overlapPercentage);
 
         // Generate note
         const notes: string[] = [];
         if (lateMinutes > 0) {
-          notes.push(`Đến muộn ${lateMinutes} phút`);
+          notes.push(`Đi muộn ${lateMinutes} phút`);
         }
         if (earlyLeaveMinutes > 0) {
           notes.push(`Về sớm ${earlyLeaveMinutes} phút`);
@@ -183,6 +232,8 @@ function generateShiftSegments(
           lateMinutes,
           earlyLeaveMinutes,
           note: notes.length > 0 ? notes.join(", ") : "",
+          shiftType,
+          overlapPercentage: Math.round(overlapPercentage * 10) / 10,
         });
       }
     }

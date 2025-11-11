@@ -201,6 +201,8 @@ model AttendanceShift {
   approvedBy        String?   @map("approved_by")
   approvedAt        DateTime? @map("approved_at")
   note              String?
+  shiftType         String    @default("primary") @map("shift_type") // "primary" | "boundary" | "overtime"
+  overlapPercentage Float     @default(100) @map("overlap_percentage") // Percentage of shift duration covered
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 

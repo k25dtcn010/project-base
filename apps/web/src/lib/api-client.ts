@@ -96,6 +96,12 @@ class ApiClient {
     });
   }
 
+  async deleteShift(id: string) {
+    return this.request<any>(`/api/shifts/${id}`, {
+      method: "DELETE",
+    });
+  }
+
   // Shift Schedule APIs
   async getShiftSchedules(params?: {
     employeeId?: string;
