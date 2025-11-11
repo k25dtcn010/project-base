@@ -1,7 +1,8 @@
-import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "@project-base/db";
+
 import { analyzeAttendance } from "../services/shift-analyzer";
 
 const attendance = new Hono();
@@ -15,7 +16,7 @@ attendance.post(
       employeeId: z.string(),
       location: z.string().optional(),
       note: z.string().optional(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -50,7 +51,7 @@ attendance.post(
             error: "Already checked in today",
             attendance: existingAttendance,
           },
-          400
+          400,
         );
       }
 
@@ -82,7 +83,7 @@ attendance.post(
       console.error("Check-in error:", error);
       return c.json({ error: "Failed to check in" }, 500);
     }
-  }
+  },
 );
 
 // Check-out endpoint
@@ -93,7 +94,7 @@ attendance.post(
     z.object({
       employeeId: z.string(),
       note: z.string().optional(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -109,10 +110,7 @@ attendance.post(
       });
 
       if (!openAttendance) {
-        return c.json(
-          { error: "No open attendance found. Please check in first." },
-          400
-        );
+        return c.json({ error: "No open attendance found. Please check in first." }, 400);
       }
 
       // Update with check-out time
@@ -152,10 +150,13 @@ attendance.post(
       console.error("Check-out error:", error);
       return c.json({ error: "Failed to check out" }, 500);
     }
-  }
+  },
 );
 
 // Get all employees attendance for admin view
+// Optimized to prevent N+1 queries:
+// - 1 query for employees
+// - 1 query for attendance shifts with all relations pre-loaded
 attendance.get(
   "/all",
   zValidator(
@@ -165,7 +166,7 @@ attendance.get(
       to: z.string().optional(),
       companyId: z.string().optional(),
       departmentId: z.string().optional(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -189,7 +190,7 @@ attendance.get(
         employeeFilter.departmentId = departmentId;
       }
 
-      // Get all employees matching filters
+      // Query 1: Get all employees matching filters (with department and company pre-loaded)
       const employees = await db.employee.findMany({
         where: employeeFilter,
         select: {
@@ -202,8 +203,21 @@ attendance.get(
         orderBy: [{ department: { name: "asc" } }, { fullName: "asc" }],
       });
 
-      // Get attendance shifts for all employees in date range
-      const where: any = {};
+      // Early return if no employees
+      if (employees.length === 0) {
+        return c.json({ data: [] });
+      }
+
+      // Query 2: Get attendance shifts for filtered employees in date range
+      // Using nested include to load all relations in single query
+      const employeeIds = employees.map((emp) => emp.id);
+      const where: any = {
+        attendance: {
+          employeeId: {
+            in: employeeIds,
+          },
+        },
+      };
       if (Object.keys(dateFilter).length > 0) {
         where.workDate = dateFilter;
       }
@@ -211,9 +225,32 @@ attendance.get(
       const attendanceShifts = await db.attendanceShift.findMany({
         where,
         include: {
-          shift: true,
+          shift: {
+            select: {
+              id: true,
+              name: true,
+              startTime: true,
+              endTime: true,
+              description: true,
+              isActive: true,
+              companyId: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
           attendance: {
-            include: {
+            select: {
+              id: true,
+              employeeId: true,
+              checkInTime: true,
+              checkOutTime: true,
+              location: true,
+              note: true,
+              isMissingCheckOut: true,
+              managerConfirmedBy: true,
+              managerConfirmedAt: true,
+              createdAt: true,
+              updatedAt: true,
               employee: {
                 select: {
                   id: true,
@@ -228,11 +265,11 @@ attendance.get(
         orderBy: [{ workDate: "asc" }],
       });
 
-      // Group by employee
+      // Group shifts by employee (in-memory aggregation, no additional queries)
       const employeeDataMap = new Map<
         string,
         {
-          employee: typeof employees[0];
+          employee: (typeof employees)[0];
           shifts: typeof attendanceShifts;
         }
       >();
@@ -263,7 +300,7 @@ attendance.get(
       console.error("Get all attendance error:", error);
       return c.json({ error: "Failed to fetch all attendance data" }, 500);
     }
-  }
+  },
 );
 
 // Get attendance history for an employee
@@ -276,7 +313,7 @@ attendance.get(
       to: z.string().optional(),
       page: z.string().optional(),
       limit: z.string().optional(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -339,7 +376,7 @@ attendance.get(
       console.error("Get attendance history error:", error);
       return c.json({ error: "Failed to fetch attendance history" }, 500);
     }
-  }
+  },
 );
 
 // Manager confirm check-out for missing check-out
@@ -351,7 +388,7 @@ attendance.patch(
       checkOutTime: z.string(),
       managerId: z.string(),
       note: z.string().optional(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -375,7 +412,9 @@ attendance.patch(
           isMissingCheckOut: true,
           managerConfirmedBy: managerId,
           managerConfirmedAt: new Date(),
-          note: note ? `${attendance.note || ""}\n[Manager confirmed] ${note}`.trim() : attendance.note,
+          note: note
+            ? `${attendance.note || ""}\n[Manager confirmed] ${note}`.trim()
+            : attendance.note,
         },
       });
 
@@ -397,7 +436,7 @@ attendance.patch(
       console.error("Confirm check-out error:", error);
       return c.json({ error: "Failed to confirm check-out" }, 500);
     }
-  }
+  },
 );
 
 export default attendance;

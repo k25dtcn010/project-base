@@ -6,9 +6,11 @@ import { logger } from "hono/logger";
 import { auth } from "@project-base/auth";
 
 import attendanceRoutes from "./routes/attendance";
+import employeeRoutes from "./routes/employee";
 import requestRoutes from "./routes/request";
 import scheduleRoutes from "./routes/schedule";
 import shiftRoutes from "./routes/shift";
+import shiftScheduleRoutes from "./routes/shift-schedule";
 
 const app = new Hono<{
   Variables: {
@@ -50,5 +52,7 @@ app.route("/api/attendance", attendanceRoutes);
 app.route("/api/schedules", scheduleRoutes);
 app.route("/api/requests", requestRoutes);
 app.route("/api/shifts", shiftRoutes);
+app.route("/api/shift-schedules", shiftScheduleRoutes);
+app.route("/api/employees", employeeRoutes);
 
 export default app;

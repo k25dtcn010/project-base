@@ -1,5 +1,5 @@
-import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "@project-base/db";
 
@@ -17,7 +17,7 @@ request.post(
       fromTime: z.string(),
       toTime: z.string(),
       reason: z.string(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -73,7 +73,7 @@ request.post(
       console.error("Create request error:", error);
       return c.json({ error: "Failed to create attendance request" }, 500);
     }
-  }
+  },
 );
 
 // Get pending requests (manager view)
@@ -135,7 +135,7 @@ request.patch(
     "json",
     z.object({
       managerId: z.string(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -214,16 +214,17 @@ request.patch(
         schedule,
         autoApproved: {
           count: updateResult.count,
-          message: updateResult.count > 0
-            ? `${updateResult.count} attendance shift(s) auto-approved`
-            : "No attendance shift found for this date",
+          message:
+            updateResult.count > 0
+              ? `${updateResult.count} attendance shift(s) auto-approved`
+              : "No attendance shift found for this date",
         },
       });
     } catch (error) {
       console.error("Approve request error:", error);
       return c.json({ error: "Failed to approve request" }, 500);
     }
-  }
+  },
 );
 
 // Reject request
@@ -234,7 +235,7 @@ request.patch(
     z.object({
       managerId: z.string(),
       rejectionReason: z.string(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -289,7 +290,7 @@ request.patch(
       console.error("Reject request error:", error);
       return c.json({ error: "Failed to reject request" }, 500);
     }
-  }
+  },
 );
 
 export default request;

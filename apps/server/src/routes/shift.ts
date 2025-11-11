@@ -1,5 +1,5 @@
-import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "@project-base/db";
 
@@ -65,7 +65,7 @@ shift.post(
       endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format, use HH:mm"),
       description: z.string().optional(),
       companyId: z.string().optional(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -109,7 +109,7 @@ shift.post(
       console.error("Create shift error:", error);
       return c.json({ error: "Failed to create shift" }, 500);
     }
-  }
+  },
 );
 
 // Update shift (admin only)
@@ -119,11 +119,17 @@ shift.put(
     "json",
     z.object({
       name: z.string().optional(),
-      startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format, use HH:mm").optional(),
-      endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format, use HH:mm").optional(),
+      startTime: z
+        .string()
+        .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format, use HH:mm")
+        .optional(),
+      endTime: z
+        .string()
+        .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format, use HH:mm")
+        .optional(),
       description: z.string().optional(),
       companyId: z.string().optional().nullable(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -163,7 +169,7 @@ shift.put(
       console.error("Update shift error:", error);
       return c.json({ error: "Failed to update shift" }, 500);
     }
-  }
+  },
 );
 
 // Toggle shift active status (admin only)

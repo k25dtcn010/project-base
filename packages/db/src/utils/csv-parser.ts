@@ -25,10 +25,10 @@ export interface CsvEmployee {
  */
 export function parseCsvFile(filePath: string): CsvEmployee[] {
   const fileContent = readFileSync(filePath, "utf-8");
-  
+
   // Remove BOM if present
   const content = fileContent.replace(/^\uFEFF/, "");
-  
+
   const records = parse(content, {
     columns: true,
     skip_empty_lines: true,
@@ -52,11 +52,9 @@ export function parseCsvFile(filePath: string): CsvEmployee[] {
     const startDateStr = record["Ngày Bắt Đầu"] || "";
     const phone = record["Số Điện Thoại"] || record["Số Điện Thoại (string)"] || "";
     const education =
-      record["Trình độ"] ||
-      record["Nghề Nghiệp/Trình Độ"] ||
-      record["Nghề nghiệp/Trình độ"] ||
-      "";
-    const relativesNote = record["Thông tin người thân"] || record["Thông tin người thân (string)"] || "";
+      record["Trình độ"] || record["Nghề Nghiệp/Trình Độ"] || record["Nghề nghiệp/Trình độ"] || "";
+    const relativesNote =
+      record["Thông tin người thân"] || record["Thông tin người thân (string)"] || "";
 
     return {
       employeeCode: employeeCode.trim(),
@@ -101,13 +99,9 @@ export function normalizeDate(dateStr: string): Date | undefined {
       const year = parseInt(match[3], 10);
 
       const date = new Date(year, month, day);
-      
+
       // Validate the date
-      if (
-        date.getFullYear() === year &&
-        date.getMonth() === month &&
-        date.getDate() === day
-      ) {
+      if (date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
         return date;
       }
     }
@@ -157,7 +151,7 @@ export function mapDepartmentName(deptName: string): string {
     "phòng khg": "KH",
     "kinh doanh": "KD",
     "tổ hậu cận": "THC",
-    "kho": "KHO",
+    kho: "KHO",
     "phòng qc/ kiểm soát": "QC",
     "phòng kỹ thuật": "KT2",
     "thiết kế hình ảnh": "TKHH",
@@ -172,7 +166,7 @@ export function mapDepartmentName(deptName: string): string {
     "thợ phụ": "TP",
     "sơn lót": "SL",
     "phụ cnc": "PCNC",
-    "pkhg": "PKHG",
+    pkhg: "PKHG",
   };
 
   return departmentNameToCode[normalized] || "BGD"; // Default to BGD if not found

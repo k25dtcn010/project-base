@@ -1,5 +1,5 @@
-import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "@project-base/db";
 
@@ -17,7 +17,7 @@ schedule.post(
       scheduledToDate: z.string(),
       note: z.string().optional(),
       createdBy: z.string(), // Manager/Admin ID
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -105,7 +105,7 @@ schedule.post(
       console.error("Create schedule error:", error);
       return c.json({ error: "Failed to create shift schedule" }, 500);
     }
-  }
+  },
 );
 
 // Get schedules for an employee
@@ -116,7 +116,7 @@ schedule.get(
     z.object({
       from: z.string().optional(),
       to: z.string().optional(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -156,43 +156,40 @@ schedule.get(
       console.error("Get employee schedules error:", error);
       return c.json({ error: "Failed to fetch schedules" }, 500);
     }
-  }
+  },
 );
 
 // Get all schedules for a specific date (manager view)
-schedule.get(
-  "/date/:date",
-  async (c) => {
-    try {
-      const { date } = c.req.param();
-      const targetDate = new Date(date);
+schedule.get("/date/:date", async (c) => {
+  try {
+    const { date } = c.req.param();
+    const targetDate = new Date(date);
 
-      const schedules = await db.shiftSchedule.findMany({
-        where: {
-          scheduledFromDate: { lte: targetDate },
-          scheduledToDate: { gte: targetDate },
-        },
-        include: {
-          employee: {
-            select: {
-              id: true,
-              employeeCode: true,
-              fullName: true,
-              department: { select: { name: true } },
-            },
+    const schedules = await db.shiftSchedule.findMany({
+      where: {
+        scheduledFromDate: { lte: targetDate },
+        scheduledToDate: { gte: targetDate },
+      },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            employeeCode: true,
+            fullName: true,
+            department: { select: { name: true } },
           },
-          shift: true,
         },
-        orderBy: [{ shift: { startTime: "asc" } }, { employee: { fullName: "asc" } }],
-      });
+        shift: true,
+      },
+      orderBy: [{ shift: { startTime: "asc" } }, { employee: { fullName: "asc" } }],
+    });
 
-      return c.json({ data: schedules, date: targetDate });
-    } catch (error) {
-      console.error("Get schedules by date error:", error);
-      return c.json({ error: "Failed to fetch schedules for date" }, 500);
-    }
+    return c.json({ data: schedules, date: targetDate });
+  } catch (error) {
+    console.error("Get schedules by date error:", error);
+    return c.json({ error: "Failed to fetch schedules for date" }, 500);
   }
-);
+});
 
 // Delete shift schedule
 schedule.delete("/:id", async (c) => {

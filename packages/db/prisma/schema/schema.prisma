@@ -3,7 +3,7 @@ generator client {
   output        = "../generated"
   moduleFormat  = "esm"
   runtime       = "bun"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "windows"]
 }
 
 datasource db {

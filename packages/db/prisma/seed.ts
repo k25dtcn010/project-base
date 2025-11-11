@@ -1,9 +1,9 @@
 import { auth } from "@project-base/auth";
 
 import prisma from "../src/index";
+import { seedAttendances } from "./seeds/attendance.seed";
 import { seedEmployeeData } from "./seeds/employee.seed";
 import { seedShifts } from "./seeds/shift.seed";
-import { seedAttendances } from "./seeds/attendance.seed";
 
 async function main() {
   console.log("🌱 Seeding database...");

@@ -32,7 +32,12 @@ interface ShiftSegment {
  */
 function parseTime(dateStr: string, timeStr: string): dayjs.Dayjs {
   const [hours, minutes] = timeStr.split(":").map(Number);
-  return dayjs.tz(dateStr, TIMEZONE).hour(hours ?? 0).minute(minutes ?? 0).second(0).millisecond(0);
+  return dayjs
+    .tz(dateStr, TIMEZONE)
+    .hour(hours ?? 0)
+    .minute(minutes ?? 0)
+    .second(0)
+    .millisecond(0);
 }
 
 /**
