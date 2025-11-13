@@ -12,17 +12,38 @@ datasource db {
 }
 
 model User {
-  id            String    @id @map("_id")
+  id            String   @id @map("_id")
   name          String
   email         String
   emailVerified Boolean
   image         String?
   createdAt     DateTime
   updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
+
+  // Additional profile fields for API spec
+  phone      String?
+  department String?
+  position   String?
+  role       String    @default("employee") // admin, manager, employee
+  managerId  String?   @map("manager_id")
+  deviceId   String?   @map("device_id")
+  joinDate   DateTime? @map("join_date")
+  isActive   Boolean   @default(true) @map("is_active")
+
+  sessions     Session[]
+  accounts     Account[]
+  manager      User?     @relation("UserHierarchy", fields: [managerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subordinates User[]    @relation("UserHierarchy")
+
+  // New relations for Leave and OT
+  leaves             Leave[]
+  leaveRequests      LeaveRequest[]
+  approvedLeaves     LeaveRequest[]    @relation("ManagerApprovedLeaves")
+  otRequests         OvertimeRequest[]
+  approvedOTRequests OvertimeRequest[] @relation("ManagerApprovedOT")
 
   @@unique([email])
+  @@index([managerId])
   @@map("user")
 }
 
@@ -35,7 +56,16 @@ model Session {
   ipAddress String?
   userAgent String?
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Device tracking fields for API spec
+  deviceId       String?   @map("device_id")
+  deviceBrand    String?   @map("device_brand")
+  deviceModel    String?   @map("device_model")
+  osVersion      String?   @map("os_version")
+  platform       String? // ios, android, web
+  lastActivityAt DateTime? @map("last_activity_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
   @@map("session")
@@ -133,13 +163,13 @@ model Employee {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  attendances        Attendance[]
-  schedules          ShiftSchedule[]
-  requests           AttendanceRequest[]
-  confirmedAttendances Attendance[] @relation("ManagerConfirmedAttendances")
-  approvedShifts     AttendanceShift[] @relation("ManagerApprovedShifts")
-  approvedRequests   AttendanceRequest[] @relation("ManagerApprovedRequests")
-  createdSchedules   ShiftSchedule[] @relation("ManagerCreatedSchedules")
+  attendances          Attendance[]
+  schedules            ShiftSchedule[]
+  requests             AttendanceRequest[]
+  confirmedAttendances Attendance[]        @relation("ManagerConfirmedAttendances")
+  approvedShifts       AttendanceShift[]   @relation("ManagerApprovedShifts")
+  approvedRequests     AttendanceRequest[] @relation("ManagerApprovedRequests")
+  createdSchedules     ShiftSchedule[]     @relation("ManagerCreatedSchedules")
 
   @@index([departmentId])
   @@index([companyId])
@@ -151,7 +181,7 @@ model Shift {
   id          String   @id @default(cuid()) @map("_id")
   name        String
   startTime   String   @map("start_time") // Format: "HH:mm"
-  endTime     String   @map("end_time")   // Format: "HH:mm"
+  endTime     String   @map("end_time") // Format: "HH:mm"
   description String?
   isActive    Boolean  @default(true) @map("is_active")
   companyId   String?  @map("company_id")
@@ -166,17 +196,42 @@ model Shift {
 }
 
 model Attendance {
-  id                  String    @id @default(cuid()) @map("_id")
-  employeeId          String    @map("employee_id")
-  checkInTime         DateTime  @map("check_in_time")
-  checkOutTime        DateTime? @map("check_out_time")
-  location            String?
-  note                String?
-  isMissingCheckOut   Boolean   @default(false) @map("is_missing_check_out")
-  managerConfirmedBy  String?   @map("manager_confirmed_by")
-  managerConfirmedAt  DateTime? @map("manager_confirmed_at")
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
+  id                 String    @id @default(cuid()) @map("_id")
+  employeeId         String    @map("employee_id")
+  checkInTime        DateTime  @map("check_in_time")
+  checkOutTime       DateTime? @map("check_out_time")
+  location           String?
+  note               String?
+  isMissingCheckOut  Boolean   @default(false) @map("is_missing_check_out")
+  managerConfirmedBy String?   @map("manager_confirmed_by")
+  managerConfirmedAt DateTime? @map("manager_confirmed_at")
+
+  // Location tracking fields
+  latitude  Float?
+  longitude Float?
+  accuracy  Float?
+  altitude  Float?
+
+  // Network tracking fields
+  wifiName       String? @map("wifi_name")
+  wifiBSSID      String? @map("wifi_bssid")
+  wifiIP         String? @map("wifi_ip")
+  mobileIP       String? @map("mobile_ip")
+  connectionType String? @map("connection_type") // wifi, mobile, unknown
+
+  // Device tracking fields
+  deviceId         String?  @map("device_id")
+  deviceBrand      String?  @map("device_brand")
+  deviceModel      String?  @map("device_model")
+  osVersion        String?  @map("os_version")
+  platform         String? // ios, android, web
+  isPhysicalDevice Boolean? @map("is_physical_device")
+
+  // Photo storage
+  photo Bytes? // Store as binary data
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   employee         Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   managerConfirmed Employee?         @relation("ManagerConfirmedAttendances", fields: [managerConfirmedBy], references: [id])
@@ -260,4 +315,77 @@ model AttendanceRequest {
   @@index([status])
   @@index([requestedDate])
   @@map("attendance_request")
+}
+
+// Leave Management Models
+model Leave {
+  id            String   @id @default(cuid()) @map("_id")
+  userId        String   @map("user_id")
+  type          String // Annual, Sick, Personal, Unpaid
+  totalDays     Int      @map("total_days")
+  usedDays      Int      @default(0) @map("used_days")
+  remainingDays Int      @map("remaining_days")
+  year          Int
+  startDate     DateTime @map("start_date")
+  endDate       DateTime @map("end_date")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([year])
+  @@map("leave")
+}
+
+model LeaveRequest {
+  id               String    @id @default(cuid()) @map("_id")
+  userId           String    @map("user_id")
+  leaveType        String    @map("leave_type") // Annual, Sick, Personal, Unpaid
+  startDate        DateTime  @map("start_date") @db.Date
+  endDate          DateTime  @map("end_date") @db.Date
+  numberOfDays     Int       @map("number_of_days")
+  reason           String
+  status           String    @default("Pending") // Pending, Approved, Rejected
+  approverId       String?   @map("approver_id")
+  approverComments String?   @map("approver_comments")
+  requestDate      DateTime  @default(now()) @map("request_date")
+  approvedDate     DateTime? @map("approved_date")
+  attachment       Bytes? // Store file as binary data
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  approver User? @relation("ManagerApprovedLeaves", fields: [approverId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("leave_request")
+}
+
+// Overtime Request Model
+model OvertimeRequest {
+  id               String    @id @default(cuid()) @map("_id")
+  userId           String    @map("user_id")
+  otDate           DateTime  @map("ot_date") @db.Date
+  startTime        String    @map("start_time") // HH:MM format
+  endTime          String    @map("end_time") // HH:MM format
+  hours            Float
+  reason           String
+  status           String    @default("Pending") // Pending, Approved, Rejected
+  approverId       String?   @map("approver_id")
+  approverComments String?   @map("approver_comments")
+  requestDate      DateTime  @default(now()) @map("request_date")
+  approvedDate     DateTime? @map("approved_date")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  approver User? @relation("ManagerApprovedOT", fields: [approverId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([otDate])
+  @@map("overtime_request")
 }

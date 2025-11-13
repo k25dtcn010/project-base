@@ -13,6 +13,7 @@
     "@hono/zod-validator": "^0.7.4",
     "@project-base/auth": "workspace:*",
     "@project-base/db": "workspace:*",
+    "bcryptjs": "^3.0.3",
     "better-auth": "catalog:",
     "dayjs": "^1.11.19",
     "dotenv": "catalog:",
@@ -20,8 +21,9 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "typescript": "catalog:",
+    "@types/bcryptjs": "^3.0.0",
     "@types/bun": "^1.2.6",
-    "tsdown": "catalog:"
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
   }
 }
